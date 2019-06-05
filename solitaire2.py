@@ -66,10 +66,28 @@ class Direction(Enum):
     Left = auto()
     Right = auto()
 
+    # None => str
+    def __str__(self):
+        return { self.Up: 'Up',
+                 self.Down: 'Down',
+                 self.Left: 'Left',
+                 self.Right: 'Right' }[self]
+
+    # None => str
+    def __repr__(self):
+        return str(self)
+        
+    
 class Card:
     def __init__(self, suit, face):
         self._suit = suit
         self._face = face
+        self._pred = None
+        self._succ = None
+        if face > Face.Ace:
+            self._pred = face - 1
+        if face < Face.King:
+            self._succ = face + 1
 
     # None => Suit
     @property
@@ -81,6 +99,26 @@ class Card:
     def face(self):
         return self._face
 
+    # None => Card
+    def is_predecessor(self, other):
+        if other.face == Face.Ace:
+            return False
+        return (self.suit == other.suit) and (self.face == other.face - 1)
+
+    # None => Card
+    def is_successor(self, other):
+        if other.face == Face.King:
+            return False
+        return (self.suit == other.suit) and (self.face == other.face + 1)
+    
+    # None => *
+    def __hash__(self):
+        return hash((self.suit, self.face))
+
+    # None => bool
+    def __eq__(self, other):
+        return (self.suit == other.suit) and (self.face == other.face)
+    
     # None => str
     def __str__(self):
         return '{}{}'.format(str(self.suit), str(self.face))
@@ -88,7 +126,8 @@ class Card:
     # None => str
     def __repr__(self):
         return str(self)
-    
+
+
 class Cell:
     # None
     def __init__(self):
@@ -182,7 +221,6 @@ class View(Gtk.Window):
 
     # None => None
     def refresh(self):
-        print(self.model.board)
         for i in range(0, 4):
             for j in range(0, 13):
                 child = self.frames[i][j].get_child()
@@ -191,7 +229,6 @@ class View(Gtk.Window):
                 self.set_css_normal(i, j)
                 if not self.model.is_empty(i, j):
                     card = self.model.board[i][j].card
-                    print(card, self.cards[card.suit][card.face])
                     self.frames[i][j].add(self.cards[card.suit][card.face])
 
         self.show_all()
@@ -223,6 +260,7 @@ class View(Gtk.Window):
     def model(self):
         return self.game.model
 
+
 class KeyPress:
     # int, Gdk.ModifierType, *
     def __init__(self, key, state = 0):
@@ -233,9 +271,15 @@ class KeyPress:
         return hash((self.key, self.state))
         
     def __eq__(self, other):
-        return (self.key == other.key) and (self.state & other.state)
+        return (self.key == other.key) and (self.state == other.state)
 
+    def __str__(self):
+        return '{} + {}'.format(hex(self.state), self.key)
 
+    def __repr__(self):
+        return str(self)
+    
+    
 class Command(ABC):
     # Game
     def __init__(self, game):
@@ -257,27 +301,29 @@ class Command(ABC):
 # be moved to the first empty row above the current row
 #
 class MoveCommand(Command):
-    # Game, Point
+    # Game, (int, int)
     def __init__(self, game, point):
         super().__init__(game)
-        self._point = point
+        self.point = point
 
     # None => None
     def execute(self):
-        self.model.move(self._point)
+        self.model.move(*self.point)
         self.view.refresh()
     
+
 class SelectCommand(Command):
-    # Game, Point
+    # Game, (int, int)
     def __init__(self, game, point):
         super().__init__(game)
-        self._point = point
+        self.point = point
 
     # None => None
     def execute(self):
-        self.model.select(self._point)
+        self.model.select(*self.point)
         self.view.refresh()
-        
+
+
 class ShuffleCommand(Command):
     # Game
     def __init__(self, game):
@@ -288,7 +334,8 @@ class ShuffleCommand(Command):
     def execute(self):
         self.model.shuffle()
         self.view.refresh()
-        
+
+
 class NewGameCommand(Command):
     # Game
     def __init__(self, game):
@@ -299,6 +346,7 @@ class NewGameCommand(Command):
         self.model.start()
         self.view.refresh()
 
+
 class QuitGameCommand(Command):
     # Game
     def __init__(self, game):
@@ -307,7 +355,8 @@ class QuitGameCommand(Command):
     # None => None
     def execute(self):
         self.model.stop()
-        
+
+
 class Controller:
     def __init__(self, game):
         self.game = game
@@ -348,9 +397,9 @@ class Controller:
         if keypress in self.directions:
             point = self.model.get_next_movable(self.directions[keypress])
             if point:
-                cmd = SelectCommand(point)
+                cmd = SelectCommand(self.game, point)
         elif keypress in self.activators:
-            cmd = MoveCommand(self.cursor)
+            cmd = MoveCommand(self.game, self.model.cursor)
             self.commands.append(cmd)
         # q or Esc quits
         elif keypress in self.quitters:
@@ -390,7 +439,18 @@ class Controller:
             self.view.execute(cmd)
 
         return False
-    
+
+    # None => Model
+    @property
+    def model(self):
+        return self.game.model
+
+    # None => View
+    @property
+    def view(self):
+        return self.game.view
+
+
 class Model:
     def __init__(self, game):
         self.game = game
@@ -421,7 +481,7 @@ class Model:
     def start(self):
         self.shuffles = self.preferences.shuffles
         self.shuffle(False)
-        self.refresh_movable()
+        self.refresh()
 
     # None => None
     def stop(self):
@@ -430,15 +490,20 @@ class Model:
     # int, int => None
     def move(self, row, col):
         card = self.board[row][col].card
-        # if card.face 
-        # for i in range(0, 4):
-        #     for j in range(0, 13):
-        #         if self.is_empty(i, j):
-        #             if 
+        dsts = []
+        if card.face == Face.Two:
+            pass
+        else:
+            for i in range(0, 4):
+                for j in range(1, 13):
+                    if not self.is_empty(i, j) \
+                       and not self.is_empty(i, j-1) \
+                       and self.board[i][j-1].card.is_successor(card):
+                        print('Moving', card)
 
-    # Point => None
-    def select(self, point):
-        self._cursor = point
+    # (int, int) => None
+    def select(self, row, col):
+        self.cursor = (row, col)
 
     # bool => None
     def shuffle(self, decr = True):
@@ -467,38 +532,40 @@ class Model:
 
         if decr:
             self.shuffles = self.shuffles - 1
-            
-    # None => None
-    def clear_movable(self):
-        for i in range(0, 4):
-            for j in range(0, 13):
-                self.board[i][j].movable = False
 
     # Direction => Point
     def get_next_movable(self, direction):
+        c_row, c_col = self.cursor
         if direction == Direction.Up:
-            for row in range(self.cursor.row - 1, -1, -1):
+            for row in reversed([(i + c_row) % 4 for i in range(1, 4)]):
                 for col in range(0, 13):
                     if self.board[row][col].movable:
                         return (row, col)
         elif direction == Direction.Down:
-            for row in range(self.cursor.row + 1, 4):
+            for row in [(i + c_row) % 4 for i in range(1, 4)]:
                 for col in range(0, 13):
                     if self.board[row][col].movable:
                         return (row, col)
         elif direction == Direction.Left:
-            for col in range(0, self.cursor.col):
-                if self.board[self.cursor.row][col].movable:
-                    return (self.cursor.row, col)
+            for col in range(c_col - 1, -1, -1):
+                if self.board[c_row][col].movable:
+                    return (c_row, col)
+            for row in reversed([(i + c_row) % 4 for i in range(1, 4)]):
+                for col in range(12, -1, -1):
+                    if self.board[row][col].movable:
+                        return (row, col)
         elif direction == Direction.Right:
-            for col in range(self.cursor.col + 1, 13):
-                if self.board[self.cursor.row][col].movable:
-                    return (self.cursor.row, col)
+            for col in range(c_col + 1, 13):
+                if self.board[c_row][col].movable:
+                    return (c_row, col)
+            for row in [(i + c_row) % 4 for i in range(1, 4)]:
+                for col in range(0, 13):
+                    if self.board[row][col].movable:
+                        return (row, col)
         return None
             
     # None => None
-    def refresh_movable(self):
-        self.clear_movable()
+    def refresh(self):
         self.cursor = None
         
         cards = set()
@@ -512,7 +579,7 @@ class Model:
             for j in range(0, 13):
                 if self.is_empty(i, j) and not self.is_empty(i, j-1):
                     card = self.board[i][j-1].card
-                    if card.face > Face.Two \
+                    if card.face >= Face.Two \
                        and card.face < Face.King:
                         cards.add(Card(card.suit,
                                        Face(card.face + 1)))
@@ -522,11 +589,13 @@ class Model:
                 if not self.is_empty(i, j) \
                    and self.board[i][j].card in cards:
                     self.board[i][j].movable = True
+                else:
+                    self.board[i][j].movable = False
 
         for i in range(0, 4):
             for j in range(0, 13):
-                self.cursor = (i, j)
-                break
+                if self.cursor is None and self.board[i][j].movable:
+                    self.cursor = (i, j)
                         
     # None => bool
     def can_shuffle(self):
