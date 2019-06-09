@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+import argparse
+from enum import Enum, unique, auto
+
+from addiction.game import Game
+from addiction.gtk.ui import GameGtk
+from addiction.gtk.dialog import SettingsGtk
+from addiction.qt.ui import GameQt
+from addiction.qt.dialog import SettingsQt
+from addiction.text.ui import GameText
+
+
+@unique
+class Mode(Enum):
+    Gtk = auto()
+    Qt = auto()
+    Text = auto()
+
+
+# None => int
+def main():
+    parser = argparse.ArgumentParser('Addiction solitaire game')
+    parser.set_defaults(mode = Mode.Gtk)
+
+    ui = parser.add_subparsers()
+
+    gtk = ui.add_parser('gtk', help = 'gtk help')
+    gtk.set_defaults(mode = Mode.Gtk)
+
+    qt = ui.add_parser('qt', help = 'qt help')
+    qt.set_defaults(mode = Mode.Qt)
+
+    text = ui.add_parser('text', help = 'text help')
+    text.add_argument('-s', '--shuffles', type = int,
+                      help = ('Maximum number of shuffles '
+                              '(-1 for infinite shuffles)'))
+    text.set_defaults(mode = Mode.Text)
+
+    args = parser.parse_args()
+
+    game = None
+    if args.mode == Mode.Gtk:
+        game = Game(GameGtk, SettingsGtk)
+    elif args.mode == Mode.Qt:
+        game = Game(GameQt, SettingsQt)
+    elif args.mode == Mode.Text:
+        game = Game(GameText, None)
+    game.main()
+    
+    return 0
+
+if __name__ == '__main__':
+    exit(main())
