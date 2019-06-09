@@ -40,12 +40,12 @@ class ShuffleAction(UndoAction):
     def __init__(self, game):
         super().__init__(game)
         self.cursor = deepcopy(game.cursor)
-        self.snapshot = deepcopy(game.cards)
+        self.cards = deepcopy(game.cards)
 
     # None => None
     def execute(self):
         self.game.clear_board()
-        for card, addr in self.snapshot.items():
+        for card, addr in self.cards.items():
             if addr:
                 self.game.set_card(addr, card)
         self.game.refresh(self.cursor)
@@ -118,16 +118,36 @@ class Game:
     def main(self):
         self.ui.main()
 
+    # Finds all movable cards and checks if the game is over/stuck.
+    # The argument to this function is the last known cursor position.
+    #
     # Point => None
     def refresh(self, curr):
         def get_nearest_movable():
-            for row in [(curr.row + i) % 4 for i in range(0, 4)]:
+            # First check for cards to the right of the current location
+            # on the same row
+            for col in range(curr.col, 13):
+                if self.is_movable(Point(curr.row, col)):
+                    return Point(curr.row, col)
+
+            # Then on rows below the current row, cycling back to the row
+            # above the current row. Look for the nearest card to the left of
+            # the current column and then to the right
+            for row in [(curr.row + i) % 4 for i in range(1, 4)]:
                 for col in range(curr.col, -1, -1):
                     if self.is_movable(Point(row, col)):
                         return Point(row, col)
                 for col in range(curr.col + 1, 13):
                     if self.is_movable(Point(row, col)):
                         return Point(row, col)
+
+            # And then cards to the left of the current location on the same row
+            for col in range(curr.col - 1, -1, -1):
+                if self.is_movable(Point(curr.row, col)):
+                    return Point(curr.row, col)
+
+            # This will be called only if there is at least one movable card,
+            # so we should never get here
             return None
         
         self.do_deselect()
@@ -171,15 +191,15 @@ class Game:
         fixed_cards = set([self.get_card(addr) for addr in fixed_points])
 
         cards = list(self.cards.keys() - fixed_cards)
-        slots = list(self.points - fixed_points)
+        addrs = list(self.points - fixed_points)
         random.shuffle(cards)
-        random.shuffle(slots)
+        random.shuffle(addrs)
         
-        for addr in slots:
+        for addr in addrs:
             self.clear_card(addr)
-        for i in range(0, len(cards)):
-            if cards[i].face != Face.Ace:
-                self.set_card(slots[i], cards[i])
+        for card, addr in zip(cards, addrs):
+            if card.face != Face.Ace:
+                self.set_card(addr, card)
 
         self.refresh(self.cursor)
 
