@@ -148,6 +148,8 @@ class Game:
                 self.do_game_over(True)
             elif self.shuffles == 0:
                 self.do_game_over(False)
+            else:
+                self.ui.report_movable_zero()
 
     # Point, Point, bool => None
     def move(self, src, dst, is_undo = False):

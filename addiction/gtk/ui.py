@@ -57,6 +57,8 @@ class GameGtk(GameUI):
                                                          card_width,
                                                          card_height,
                                                          False))
+        self.fg = \
+            self.lbl_message.get_style_context().get_color(Gtk.StateFlags.NORMAL)
 
     # None => None
     def main(self):
@@ -157,9 +159,12 @@ class GameGtk(GameUI):
     # int => None
     def report_movable_changed(self, movable):
         self.lbl_movable.set_text(str(movable))
-        if movable == 0:
-            self.lbl_message.set_text('No moves available. Press F5 to reshuffle')
+        self.lbl_message.set_text('')
 
+    # None => None
+    def report_movable_zero(self):
+        self.lbl_message.set_text('No moves available. Press F5 to reshuffle')
+            
     # bool => None
     def report_game_over(self, win):
         color = None
@@ -189,6 +194,7 @@ class GameGtk(GameUI):
         css.append('label {')
         css.append('  background-color: {};'.format(
             self.format_css_color(Gdk.RGBA(0, 0, 0, 0))))
+        css.append('  color: {};'.format(self.format_css_color(self.fg)))
         css.append('  font-weight: normal;')
         css.append('}')
 

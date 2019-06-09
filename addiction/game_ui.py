@@ -68,15 +68,14 @@ class GameUI(AbstractBase):
         pass
 
     # int => None
+    @abstractmethod
     def report_shuffles_changed(self, shuffles):
-        self.lbl_shuffles.set_text(str(shuffles))
-        self.lbl_message.set_text('')
+        pass
 
     # int => None
+    @abstractmethod
     def report_movable_changed(self, movable):
-        self.lbl_movable.set_text(str(movable))
-        if movable == 0:
-            self.lbl_message.set_text('No moves available. Press F5 to reshuffle')
+        pass
 
     # bool => None
     @abstractmethod
