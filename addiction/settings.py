@@ -30,13 +30,15 @@ class Settings:
     group = 'solitaire'
 
     # Default settings
-    def_color_cursor = Gdk.RGBA(78/255, 154/255, 6/255, 1.0)
+    def_color_selected = Gdk.RGBA(78/255, 154/255, 6/255, 1.0)
     def_color_movable = Gdk.RGBA(252/255, 175/255, 62/255, 1.0)
+    def_color_fixed = Gdk.RGBA(255, 0, 0, 1.0)
     def_color_normal = Gdk.RGBA(230/255, 230/255, 230/255, 1.0)
     def_border = 4
     def_radius = 8
     def_shuffles = 3
     def_highlight_movable = True
+    def_highlight_fixed = False
 
     # Game, class
     def __init__(self, game, SettingsUI):
@@ -68,8 +70,8 @@ class Settings:
         if self.keyfile.has_group(Settings.group):
             keys = set(self.keyfile.get_keys(Settings.group)[0])
 
-        if 'color_cursor' not in keys:
-            self.color_cursor = Settings.def_color_cursor
+        if 'color_selected' not in keys:
+            self.color_selected = Settings.def_color_selected
         if 'color_movable' not in keys:
             self.color_movable = Settings.def_color_movable
         if 'color_normal' not in keys:
@@ -82,6 +84,8 @@ class Settings:
             self.shuffles = Settings.def_shuffles
         if 'highlight_movable' not in keys:
             self.highlight_movable = Settings.def_highlight_movable
+        if 'highlight_fixed' not in keys:
+            self.highlight_fixed = Settings.def_highlight_fixed
         
     # None => None
     def write(self):
@@ -89,9 +93,9 @@ class Settings:
         
     # None => Gdk.RGBA
     @property
-    def color_cursor(self):
+    def color_selected(self):
         color = Gdk.RGBA()
-        color.parse(self.keyfile.get_string(Settings.group, 'color_cursor'))
+        color.parse(self.keyfile.get_string(Settings.group, 'color_selected'))
         return color
 
     # None => Gdk.RGBA
@@ -101,6 +105,13 @@ class Settings:
         color.parse(self.keyfile.get_string(Settings.group, 'color_movable'))
         return color
 
+    # None => Gdk.RGBA
+    @property
+    def color_fixed(self):
+        color = Gdk.RGBA()
+        color.parse(self.keyfile.get_string(Settings.group, 'color_fixed'))
+        return color
+    
     # None => Gdk.RGBA
     @property
     def color_normal(self):
@@ -127,16 +138,21 @@ class Settings:
     @property
     def highlight_movable(self):
         return self.keyfile.get_boolean(Settings.group, 'highlight_movable')
+
+    # None => bool
+    @property
+    def highlight_fixed(self):
+        return self.keyfile.get_boolean(Settings.group, 'highlight_fixed')
     
     # * => None
-    @color_cursor.setter
-    def color_cursor(self, val):
+    @color_selected.setter
+    def color_selected(self, val):
         color = Gdk.RGBA()
         if isinstance(val, Gdk.RGBA):
             color = Gdk.RGBA.copy(val)
         elif not color.parse(val):
             raise RuntimeError('Could not set color from "{}"'.format(val))
-        self.keyfile.set_string(Settings.group, 'color_cursor',
+        self.keyfile.set_string(Settings.group, 'color_selected',
                                 color.to_string())
 
     # * => None
@@ -150,6 +166,17 @@ class Settings:
         self.keyfile.set_string(Settings.group, 'color_movable',
                                 color.to_string())
 
+    # * => None
+    @color_fixed.setter
+    def color_fixed(self, val):
+        color = Gdk.RGBA()
+        if isinstance(val, Gdk.RGBA):
+            color = Gdk.RGBA.copy(val)
+        elif not color.parse(val):
+            raise RuntimeError('Could not set color from "{}"'.format(val))
+        self.keyfile.set_string(Settings.group, 'color_fixed',
+                                color.to_string())
+        
     # * => None
     @color_normal.setter
     def color_normal(self, val):
@@ -180,3 +207,8 @@ class Settings:
     @highlight_movable.setter
     def highlight_movable(self, val):
         self.keyfile.set_boolean(Settings.group, 'highlight_movable', val)
+
+    # bool => None
+    @highlight_fixed.setter
+    def highlight_fixed(self, val):
+        self.keyfile.set_boolean(Settings.group, 'highlight_fixed', val)

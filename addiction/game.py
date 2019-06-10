@@ -25,7 +25,7 @@ import random
 from abc import ABC as AbstractBase, abstractmethod
 from copy import deepcopy
 
-from .types import Card, Face, Suit, Direction, Point
+from .types import Card, Face, Suit, Direction, Point, CellFlags
 from .settings import Settings
 
 
@@ -56,7 +56,7 @@ class ShuffleAction(UndoAction):
     # Game
     def __init__(self, game):
         super().__init__(game)
-        self.cursor = deepcopy(game.cursor)
+        self.selected = deepcopy(game.selected)
         self.cards = deepcopy(game.cards)
 
     # None => None
@@ -65,8 +65,8 @@ class ShuffleAction(UndoAction):
         for card, addr in self.cards.items():
             if addr:
                 self.game.set_card(addr, card)
-        self.game.refresh(self.cursor)
         self.game.shuffles_incr()
+        self.game.refresh(self.selected)
 
 
 class Cell:
@@ -75,8 +75,22 @@ class Cell:
         self.game = game
         self.addr = addr
         self._card = None
-        self._movable = None
+        self._flags = CellFlags.Normal
 
+    # None => None
+    def clear(self):
+        card = self.card
+        self._card = None
+        self.clear_flags()
+        if card:
+            self.game.ui.report_cell_card_changed(self.addr, None)
+        
+    # None => None
+    def clear_flags(self):
+        self._flags = CellFlags.Normal
+        self.game.ui.report_cell_movable_changed(self.addr, False)
+        self.game.ui.report_cell_fixed_changed(self.addr, False)
+        
     # None => Card
     @property
     def card(self):
@@ -85,24 +99,41 @@ class Cell:
     # None => bool
     @property
     def movable(self):
-        return self._movable
+        return self._flags & CellFlags.Movable
 
+    # None => bool
+    @property
+    def fixed(self):
+        return self._flags & CellFlags.Fixed 
+
+    # None => bool
+    @property
+    def selected(self):
+        return self._flags & CellFlags.Selected
+    
+    # None => CellFlags
+    @property
+    def flags(self):
+        return self._flags
+    
     # Card => None
-    @card.setter
-    def card(self, val):
-        if (not self.card) or (not val) or (self.card != val):
+    def set_card(self, val):
+        if (not self.card) or (self.card != val):
             self._card = val
             self.game.ui.report_cell_card_changed(self.addr, self.card)
-        if not val:
-            self.movable = False
 
-    # bool => None
-    @movable.setter
-    def movable(self, val):
-        if self.movable != val:
-            self._movable = val
-            self.game.ui.report_cell_movable_changed(self.addr, self.movable)
+    # None => None
+    def set_movable(self):
+        if not self.movable:
+            self._flags = self._flags | CellFlags.Movable 
+            self.game.ui.report_cell_movable_changed(self.addr, True)
 
+    # None => None
+    def set_fixed(self):
+        if not self.fixed:
+            self._flags = self._flags | CellFlags.Fixed
+            self.game.ui.report_cell_fixed_changed(self.addr, True)
+            
 
 class Game:
     # class, class
@@ -127,7 +158,7 @@ class Game:
                 self.cards[Card(suit, face)] = None
 
         self.started = False
-        self.cursor = None
+        self.selected = None
         self.undo = []
         self.shuffles = self.settings.shuffles
 
@@ -169,24 +200,29 @@ class Game:
         
         self.do_deselect()
         for addr in self.points:
-            self.set_movable(addr, False)
-                
-        movable = self.get_movable_points()
-        self.ui.report_movable_changed(len(movable))
-        if movable:
-            for addr in movable:
-                self.set_movable(addr)
-            if curr:
-                self.do_select(get_nearest_movable())
+            self.clear_flags(addr)
+
+        fixed = self.get_fixed_points()
+        for addr in fixed:
+            self.set_fixed(addr)
+
+        if len(fixed) == 48:
+            self.do_game_over(True)
+        else:    
+            movable = self.get_movable_points()
+            self.ui.report_movable_changed(len(movable))
+            if movable:
+                for addr in movable:
+                    self.set_movable(addr)
+                if curr:
+                    self.do_select(get_nearest_movable())
+                else:
+                    self.do_select(movable[0])
             else:
-                self.do_select(movable[0])
-        else:
-            if len(self.get_fixed_points()) == 48:
-                self.do_game_over(True)
-            elif self.shuffles == 0:
-                self.do_game_over(False)
-            else:
-                self.ui.report_movable_zero()
+                if self.shuffles == 0:
+                    self.do_game_over(False)
+                else:
+                    self.ui.report_movable_zero()
 
     # Point, Point, bool => None
     def move(self, src, dst, is_undo = False):
@@ -218,7 +254,7 @@ class Game:
             if card.face != Face.Ace:
                 self.set_card(addr, card)
 
-        self.refresh(self.cursor)
+        self.refresh(self.selected)
 
     # None => None
     def clear_board(self):
@@ -256,7 +292,7 @@ class Game:
         self.ui.quit()
 
     # Direction => None
-    def do_move_cursor(self, direction):
+    def do_move_selected(self, direction):
         # int, int => Point
         def get_nearest_movable_left(row, col):
             if self.is_movable(Point(row, col)):
@@ -292,39 +328,39 @@ class Game:
             
         # Direction => Point
         def get_next_movable_point(direction):
-            rows = [(i + self.cursor.row) % 4 for i in range(1, 4)]
+            rows = [(i + self.selected.row) % 4 for i in range(1, 4)]
             if direction == Direction.Up:
                 for row in reversed(rows):
-                    addr = get_nearest_movable(row, self.cursor.col)
+                    addr = get_nearest_movable(row, self.selected.col)
                     if addr:
                         return addr
             elif direction == Direction.Down:
                 for row in rows:
-                    addr = get_nearest_movable(row, self.cursor.col)
+                    addr = get_nearest_movable(row, self.selected.col)
                     if addr:
                         return addr
             elif direction == Direction.Left:
-                for col in range(self.cursor.col - 1, -1, -1):
-                    if self.is_movable(Point(self.cursor.row, col)):
-                        return Point(self.cursor.row, col)
+                for col in range(self.selected.col - 1, -1, -1):
+                    if self.is_movable(Point(self.selected.row, col)):
+                        return Point(self.selected.row, col)
                 for row in reversed(rows):
                     for col in range(12, -1, -1):
                         if self.is_movable(Point(row, col)):
                             return Point(row, col)
-                for col in range(12, self.cursor.col + 1, -1):
-                    if self.is_movable(Point(self.cursor.row, col)):
-                        return Point(self.cursor.row, col)
+                for col in range(12, self.selected.col + 1, -1):
+                    if self.is_movable(Point(self.selected.row, col)):
+                        return Point(self.selected.row, col)
             elif direction == Direction.Right:
-                for col in range(self.cursor.col + 1, 13):
-                    if self.is_movable(Point(self.cursor.row, col)):
-                        return Point(self.cursor.row, col)
+                for col in range(self.selected.col + 1, 13):
+                    if self.is_movable(Point(self.selected.row, col)):
+                        return Point(self.selected.row, col)
                 for row in rows:
                     for col in range(0, 13):
                         if self.is_movable(Point(row, col)):
                             return Point(row, col)
-                for col in range(0, self.cursor.col):
-                    if self.is_movable(Point(self.cursor.row, col)):
-                        return Point(self.cursor.row, col)
+                for col in range(0, self.selected.col):
+                    if self.is_movable(Point(self.selected.row, col)):
+                        return Point(self.selected.row, col)
             return None
 
         addr = get_next_movable_point(direction)
@@ -334,21 +370,22 @@ class Game:
     # Point => None
     def do_select(self, addr):
         self.do_deselect()
-        self.cursor = addr
-        self.ui.report_cell_selected_changed(self.cursor, True)
+        self.selected = addr
+        self.ui.report_cell_selected_changed(self.selected, True)
 
     # Point => None
     def do_deselect(self):
-        if self.cursor:
-            self.ui.report_cell_selected_changed(self.cursor, False)
-        self.cursor = None
+        if self.selected:
+            self.ui.report_cell_selected_changed(self.selected, False)
+        self.selected = None
 
     # None => None
     def do_undo(self):
-        if len(self.undo):
-            self.undo.pop(-1).execute()
-        else:
-            self.ui.report_undo_nothing()
+        if self.started:
+            if len(self.undo):
+                self.undo.pop(-1).execute()
+            else:
+                self.ui.report_undo_nothing()
         
     # Point => None
     def do_move_card(self, src):
@@ -375,8 +412,9 @@ class Game:
         
     # None => None
     def do_shuffle(self):
-        self.shuffle()
-        self.shuffles_decr()
+        if self.started:
+            self.shuffle()
+            self.shuffles_decr()
 
     # None => [Point]
     def get_fixed_points(self):
@@ -402,6 +440,7 @@ class Game:
         
     # None => [Point]
     def get_movable_points(self):
+        # None => bool
         def is_head_empty():
             for i in range(0, 4):
                 if self.is_empty(Point(i, 0)):
@@ -419,28 +458,31 @@ class Game:
                 if succ:
                     movable.append(self.cards[succ])
         return movable
-
-    # Point, bool => None
-    def set_movable(self, addr, movable = True):
-        self.board[addr.row][addr.col].movable = movable
-
-    # Point => bool
-    def is_movable(self, addr):
-        return self.board[addr.row][addr.col].movable
-        
-    # Point, Card => None
-    def set_card(self, addr, card):
-        self.board[addr.row][addr.col].card = card
-        self.cards[card] = addr
-
+    
     # Point => None
     def clear_card(self, addr):
         card = self.get_card(addr)
-        self.board[addr.row][addr.col].card = None
-        self.board[addr.row][addr.col].movable = None
         if card:
             self.cards[card] = None
+        self.board[addr.row][addr.col].clear()
+
+    # None => None
+    def clear_flags(self, addr):
+        self.board[addr.row][addr.col].clear_flags()
         
+    # Point, Card => None
+    def set_card(self, addr, card):
+        self.board[addr.row][addr.col].set_card(card)
+        self.cards[card] = addr
+
+    # Point, bool => None
+    def set_movable(self, addr):
+        self.board[addr.row][addr.col].set_movable()
+
+    # Point, bool => None
+    def set_fixed(self, addr):
+        self.board[addr.row][addr.col].set_fixed()
+
     # Point => Card
     def get_card(self, addr):
         if self.board[addr.row][addr.col] is None:
@@ -448,6 +490,19 @@ class Game:
         return self.board[addr.row][addr.col].card
 
     # Point => bool
+    def is_movable(self, addr):
+        return self.board[addr.row][addr.col].movable
+
+    # Point => bool
+    def is_fixed(self, addr):
+        return self.board[addr.row][addr.col].fixed
+
+    # Point => bool
     def is_empty(self, addr):
         return self.get_card(addr) is None
     
+    # Point => bool
+    def is_selected(self, addr):
+        if self.selected:
+            return self.selected == addr
+        return False

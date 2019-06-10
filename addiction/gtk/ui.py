@@ -84,48 +84,41 @@ class GameGtk(GameUI):
     # None => None
     def quit(self):
         Gtk.main_quit()
-        
+
     # * => None
     def action_about(self, *args):
         self.dlg_about.run()
 
     # * => None
-    def action_new(self, *args):
-        self.grd_board.show()
-        self.game.do_game_new()
-
-    # * => None
     def action_preferences(self, mitm_game_preferences):
         self.settings.ui.run_dialog()
 
-    # * => None
-    def action_quit(self, *args):
-        self.game.do_quit()
-
-    # * => None
-    def action_shuffle(self, *args):
-        if self.game.started:
-            self.game.do_shuffle()
-
-    # * => None
-    def action_undo(self, *args):
-        if self.game.started:
-            self.game.do_undo()
-    
     # Gtk.Window, Gdk.Event => bool
     def action_key_press(self, win_main, evt):
-        if self.game.cursor:
-            key = evt.keyval
-            if key in [Gdk.KEY_Up, Gdk.KEY_KP_Up]:
-                self.game.do_move_cursor(Direction.Up)
-            elif key in [Gdk.KEY_Down, Gdk.KEY_KP_Down]:
-                self.game.do_move_cursor(Direction.Down)
-            elif key in [Gdk.KEY_Left, Gdk.KEY_KP_Left]:
-                self.game.do_move_cursor(Direction.Left)
-            elif key in [Gdk.KEY_Right, Gdk.KEY_KP_Down]:
-                self.game.do_move_cursor(Direction.Right)
-            elif key in [Gdk.KEY_Return, Gdk.KEY_KP_Enter]:
-                self.game.do_move_card(self.game.cursor)
+        key = evt.keyval
+        if key in [Gdk.KEY_Up, Gdk.KEY_KP_Up]:
+            if self.game.selected:
+                self.game.do_move_selected(Direction.Up)
+        elif key in [Gdk.KEY_Down, Gdk.KEY_KP_Down]:
+            if self.game.selected:
+                self.game.do_move_selected(Direction.Down)
+        elif key in [Gdk.KEY_Left, Gdk.KEY_KP_Left]:
+            if self.game.selected:
+                self.game.do_move_selected(Direction.Left)
+        elif key in [Gdk.KEY_Right, Gdk.KEY_KP_Down]:
+            if self.game.selected:
+                self.game.do_move_selected(Direction.Right)
+        elif key in [Gdk.KEY_Return, Gdk.KEY_KP_Enter]:
+            if self.game.selected:
+                self.game.do_move_card(self.game.selected)
+        elif key in [Gdk.KEY_q, Gdk.KEY_Escape]:
+            self.action_quit()
+        elif key in [Gdk.KEY_n]:
+            self.action_new()
+        elif key in [Gdk.KEY_r]:
+            self.action_shuffle()
+        elif key in [Gdk.KEY_u]:
+            self.action_undo()
             
         return False
         
@@ -161,13 +154,26 @@ class GameGtk(GameUI):
     # Point, bool => None
     def report_cell_selected_changed(self, addr, selected):
         if selected:
-            self.set_widget_css(self.get_frame(addr), self.get_css_cursor())
+            self.set_widget_css(self.get_frame(addr), self.get_css_selected())
         elif self.game.is_movable(addr):
             self.set_widget_css(self.get_frame(addr), self.get_css_movable())
+        elif self.game.is_fixed(addr):
+            self.set_widget_css(self.get_frame(addr), self.get_css_fixed())
         else:
             self.set_widget_css(self.get_frame(addr), self.get_css_normal())
         self.lbl_message.set_text('')
 
+    # Point, bool => None
+    def report_cell_fixed_changed(self, addr, fixed):
+        if fixed:
+            self.set_widget_css(self.get_frame(addr), self.get_css_fixed())
+        elif self.game.is_selected(addr):
+            self.set_widget_css(self.get_frame(addr), self.get_css_selected())
+        elif self.game.is_movable(addr):
+            self.set_widget_css(self.get_frame(addr), self.get_css_movable())
+        else:
+            self.set_widget_css(self.get_frame(addr), self.get_css_normal())
+        
     # int => None
     def report_shuffles_changed(self, shuffles):
         self.lbl_shuffles.set_text(str(shuffles))
@@ -256,8 +262,8 @@ class GameGtk(GameUI):
         return '\n'.join(css)
     
     # None => str
-    def get_css_cursor(self):
-        return self.get_border_css(self.settings.color_cursor)
+    def get_css_selected(self):
+        return self.get_border_css(self.settings.color_selected)
 
     # None => str
     def get_css_movable(self):
@@ -266,6 +272,13 @@ class GameGtk(GameUI):
         else:
             return self.get_css_normal()
 
+    # None => str
+    def get_css_fixed(self):
+        if self.settings.highlight_fixed:
+            return self.get_border_css(self.settings.color_fixed)
+        else:
+            return self.get_css_normal()
+        
     # None => str
     def get_css_normal(self):
         return self.get_border_css(self.settings.color_normal)

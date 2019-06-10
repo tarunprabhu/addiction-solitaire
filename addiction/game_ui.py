@@ -41,26 +41,6 @@ class GameUI(AbstractBase):
     
     # * => *
     @abstractmethod
-    def action_new(self, *args):
-        pass
-
-    # * => *
-    @abstractmethod
-    def action_quit(self, *args):
-        pass
-
-    # * => *
-    @abstractmethod
-    def action_shuffle(self, *args):
-        pass
-
-    # * => *
-    @abstractmethod
-    def action_undo(self, *args):
-        pass
-
-    # * => *
-    @abstractmethod
     def action_key_press(self, *args):
         pass
 
@@ -84,6 +64,11 @@ class GameUI(AbstractBase):
     def report_cell_selected_changed(self, addr, selected):
         pass
 
+    # Point, bool => None
+    @abstractmethod
+    def report_cell_fixed_changed(self, addr, fixed):
+        pass
+    
     # int => None
     @abstractmethod
     def report_shuffles_changed(self, shuffles):
@@ -94,6 +79,11 @@ class GameUI(AbstractBase):
     def report_movable_changed(self, movable):
         pass
 
+    # None => None
+    @abstractmethod
+    def report_movable_zero(self):
+        pass
+    
     # bool => None
     @abstractmethod
     def report_game_over(self, win):
@@ -118,7 +108,23 @@ class GameUI(AbstractBase):
     @abstractmethod
     def report_shuffle(self):
         pass
-    
+
+    # * => None
+    def action_new(self, *args):
+        self.game.do_game_new()
+
+    # * => None
+    def action_quit(self, *args):
+        self.game.do_quit()
+
+    # * => None
+    def action_shuffle(self, *args):
+        self.game.do_shuffle()
+
+    # * => None
+    def action_undo(self, *args):
+        self.game.do_undo()
+
     # None => Game
     @property
     def game(self):

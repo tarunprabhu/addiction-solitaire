@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from enum import Enum, IntEnum, auto, unique
+from enum import Enum, IntEnum, IntFlag, auto, unique
 
 @unique
 class Face(IntEnum):
@@ -89,6 +89,14 @@ class Card:
         self.suit = suit
         self.face = face
 
+    # None => bool
+    def is_red(self):
+        return self.suit in [Suit.Diamonds, Suit.Hearts]
+
+    # None => bool
+    def is_black(self):
+        return self.suit in [Suit.Clubs, Suit.Spades]
+        
     # Card => bool
     def is_predecessor(self, other):
         if other.face == Face.Ace:
@@ -146,7 +154,8 @@ class Card:
         faces = { Face.Ace: 'A',
                   Face.Jack: 'J',
                   Face.Queen: 'Q',
-                  Face.King: 'K' }
+                  Face.King: 'K',
+                  Face.Ten: 'T'}
         if self.face in faces:
             return '{:>2}{}'.format(faces[self.face], suits[self.suit])
         else:
@@ -220,3 +229,11 @@ class Point:
     # None => str
     def __repr__(self):
         return str(self)
+
+
+@unique
+class CellFlags(IntFlag):
+    Normal = 0x0
+    Movable = 0x1
+    Selected = 0x2
+    Fixed = 0x4
