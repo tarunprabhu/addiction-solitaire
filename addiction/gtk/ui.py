@@ -67,13 +67,16 @@ class GameGtk(GameUI):
                 self.board[i][j] = frm
         self.win_main.show_all()
 
+        cards_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'cards')
         card_width = self.board[0][0].get_allocation().width
         card_height = self.board[0][0].get_allocation().height
         self.cards = dict()
         for s in Suit:
             self.cards[s] = dict()
             for c in Face:
-                filename = os.path.join('cards', s.dirname, c.filename)
+                filename = os.path.join(cards_dir, s.dirname, c.filename)
                 self.cards[s][c] = \
                     Gtk.Image.new_from_pixbuf(
                         GdkPixbuf.new_from_file_at_scale(filename,
