@@ -105,6 +105,17 @@
           </packing>
         </child>
         <child>
+          <object class="GtkSeparator" id="set_main">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkGrid" id="grd_preferences_main">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -114,52 +125,14 @@
               <object class="GtkLabel" id="lbl_shuffle">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Max. shu_ffles</property>
+                <property name="label" translatable="yes">Shu_ffles</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">spn_shuffles</property>
                 <property name="track_visited_links">False</property>
                 <property name="xalign">0.10000000149011612</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="spn_shuffles">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="activates_default">True</property>
-                <property name="truncate_multiline">True</property>
-                <property name="caps_lock_warning">False</property>
-                <property name="input_purpose">number</property>
-                <property name="adjustment">adj_shuffle</property>
-                <property name="climb_rate">1</property>
-                <property name="snap_to_ticks">True</property>
-                <property name="numeric">True</property>
-                <property name="update_policy">if-valid</property>
-                <property name="value">3</property>
-                <signal name="value-changed" handler="cb_spn_shuffles_value_changed" swapped="no"/>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="chk_movable">
-                <property name="label" translatable="yes">Highlight mo_vable</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="cb_chk_movable_toggled" swapped="no"/>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
               </packing>
             </child>
             <child>
@@ -190,15 +163,15 @@
               </packing>
             </child>
             <child>
-              <object class="GtkColorButton" id="cbtn_cursor">
+              <object class="GtkColorButton" id="cbtn_selected">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_alpha">True</property>
-                <property name="title" translatable="yes">Pick the color for the cursor</property>
-                <property name="rgba">rgb(78,154,6)</property>
+                <property name="title" translatable="yes">Pick the border color of the selected card</property>
+                <property name="rgba">rgb(164,0,0)</property>
                 <property name="show_editor">True</property>
-                <signal name="color-set" handler="cb_cbtn_cursor_color_set" swapped="no"/>
+                <signal name="color-set" handler="cb_cbtn_selected_color_set" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -206,12 +179,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="lbl_cursor">
+              <object class="GtkLabel" id="lbl_selected">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Cursor</property>
+                <property name="tooltip_text" translatable="yes">Border color of the currently selected cards</property>
+                <property name="label" translatable="yes">Se_lected</property>
                 <property name="use_underline">True</property>
-                <property name="mnemonic_widget">cbtn_cursor</property>
+                <property name="mnemonic_widget">cbtn_selected</property>
                 <property name="track_visited_links">False</property>
                 <property name="xalign">0.10000000149011612</property>
               </object>
@@ -220,11 +194,153 @@
                 <property name="top_attach">1</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkFrame" id="frm_shuffles">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkSpinButton" id="spn_shuffles">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="activates_default">True</property>
+                    <property name="truncate_multiline">True</property>
+                    <property name="caps_lock_warning">False</property>
+                    <property name="input_purpose">number</property>
+                    <property name="adjustment">adj_shuffle</property>
+                    <property name="climb_rate">1</property>
+                    <property name="snap_to_ticks">True</property>
+                    <property name="numeric">True</property>
+                    <property name="update_policy">if-valid</property>
+                    <property name="value">3</property>
+                    <signal name="value-changed" handler="cb_spn_shuffles_value_changed" swapped="no"/>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="chk_shuffles">
+                <property name="label" translatable="yes">_Unlimited</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="use_underline">True</property>
+                <property name="draw_indicator">True</property>
+                <signal name="toggled" handler="cb_chk_shuffles_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="chk_movable">
+                <property name="label" translatable="yes">_Use</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">If checked, all movable cards will be highlighted</property>
+                <property name="use_underline">True</property>
+                <property name="active">True</property>
+                <property name="draw_indicator">True</property>
+                <signal name="toggled" handler="cb_chk_movable_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="chk_correct">
+                <property name="label" translatable="yes">_Use</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">If checked, all correctly placed cards will be highlighted</property>
+                <property name="use_underline">True</property>
+                <property name="active">True</property>
+                <property name="draw_indicator">True</property>
+                <signal name="toggled" handler="cb_chk_correct_toggled" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFrame" id="frm_correct">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkColorButton" id="cbtn_correct">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="title" translatable="yes">Select the border color of a correctly placed card</property>
+                    <property name="rgba">rgb(115,210,22)</property>
+                    <property name="show_editor">True</property>
+                    <signal name="color-set" handler="cb_cbtn_correct_color_set" swapped="no"/>
+                  </object>
+                </child>
+                <child type="label_item">
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lbl_correct">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Border color of correctly placed cards</property>
+                <property name="label" translatable="yes">_Correct</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">cbtn_correct</property>
+                <property name="track_visited_links">False</property>
+                <property name="xalign">0.10000000149011612</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lbl_preferences_movable">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Border color of movable cards</property>
+                <property name="label" translatable="yes">Mo_vable</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">cbtn_movable</property>
+                <property name="track_visited_links">False</property>
+                <property name="xalign">0.10000000149011612</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
@@ -274,6 +390,90 @@
         </child>
       </object>
     </child>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
+  <object class="GtkDialog" id="dlg_quit">
+    <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Quit game</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="icon">../../icons/32x32/addiction-solitaire.png</property>
+    <property name="type_hint">dialog</property>
+    <property name="skip_taskbar_hint">True</property>
+    <property name="skip_pager_hint">True</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="bx_quit">
+        <property name="can_focus">False</property>
+        <property name="margin_left">8</property>
+        <property name="margin_right">8</property>
+        <property name="margin_top">8</property>
+        <property name="margin_bottom">8</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="bbx_quit">
+            <property name="can_focus">False</property>
+            <property name="layout_style">center</property>
+            <child>
+              <object class="GtkButton" id="btn_quit_yes">
+                <property name="label" translatable="yes">_Yes</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btn_quit_no">
+                <property name="label" translatable="yes">_No</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="has_default">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lbl_quit">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="margin_bottom">8</property>
+            <property name="label" translatable="yes">Quit current game?</property>
+            <property name="track_visited_links">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-8">btn_quit_yes</action-widget>
+      <action-widget response="-9">btn_quit_no</action-widget>
+    </action-widgets>
     <child>
       <placeholder/>
     </child>
@@ -360,6 +560,7 @@
                       <object class="GtkImageMenuItem" id="mitm_undo">
                         <property name="label">gtk-undo</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
@@ -371,6 +572,7 @@
                       <object class="GtkImageMenuItem" id="mitm_shuffle">
                         <property name="label" translatable="yes">Shu_ffle</property>
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
@@ -1866,7 +2068,7 @@
         </child>
       </object>
     </child>
-    <child>
+    <child type="titlebar">
       <placeholder/>
     </child>
   </object>

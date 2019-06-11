@@ -89,7 +89,7 @@ class Cell:
     def clear_flags(self):
         self._flags = CellFlags.Normal
         self.game.ui.report_cell_movable_changed(self.addr, False)
-        self.game.ui.report_cell_fixed_changed(self.addr, False)
+        self.game.ui.report_cell_correct_changed(self.addr, False)
         
     # None => Card
     @property
@@ -103,8 +103,8 @@ class Cell:
 
     # None => bool
     @property
-    def fixed(self):
-        return self._flags & CellFlags.Fixed 
+    def correct(self):
+        return self._flags & CellFlags.Correct 
 
     # None => bool
     @property
@@ -129,16 +129,16 @@ class Cell:
             self.game.ui.report_cell_movable_changed(self.addr, True)
 
     # None => None
-    def set_fixed(self):
-        if not self.fixed:
-            self._flags = self._flags | CellFlags.Fixed
-            self.game.ui.report_cell_fixed_changed(self.addr, True)
+    def set_correct(self):
+        if not self.correct:
+            self._flags = self._flags | CellFlags.Correct
+            self.game.ui.report_cell_correct_changed(self.addr, True)
             
 
 class Game:
-    # class, class
-    def __init__(self, GameUI, SettingsUI):
-        self.settings = Settings(self, SettingsUI)
+    # class
+    def __init__(self, GameUI):
+        self.settings = Settings(self)
         self.ui = GameUI(self)
         
         self.points = set()
@@ -202,11 +202,11 @@ class Game:
         for addr in self.points:
             self.clear_flags(addr)
 
-        fixed = self.get_fixed_points()
-        for addr in fixed:
-            self.set_fixed(addr)
+        correct = self.get_correct_points()
+        for addr in correct:
+            self.set_correct(addr)
 
-        if len(fixed) == 48:
+        if len(correct) == 48:
             self.do_game_over(True)
         else:    
             movable = self.get_movable_points()
@@ -231,6 +231,7 @@ class Game:
         self.set_card(dst, card)
         if not is_undo:
             self.undo.append(MoveAction(self, src, dst))
+            self.ui.report_undo_changed(len(self.undo))
 
         self.ui.report_move(src, dst)
         self.refresh(src)
@@ -239,12 +240,13 @@ class Game:
     def shuffle(self, is_undo = False):
         if self.started and not is_undo:
             self.undo.append(ShuffleAction(self))
+            self.ui.report_undo_changed(len(self.undo))
         
-        fixed_points = set(self.get_fixed_points())
-        fixed_cards = set([self.get_card(addr) for addr in fixed_points])
+        correct_points = set(self.get_correct_points())
+        correct_cards = set([self.get_card(addr) for addr in correct_points])
 
-        cards = list(self.cards.keys() - fixed_cards)
-        addrs = list(self.points - fixed_points)
+        cards = list(self.cards.keys() - correct_cards)
+        addrs = list(self.points - correct_points)
         random.shuffle(cards)
         random.shuffle(addrs)
         
@@ -263,12 +265,14 @@ class Game:
 
     # None => None
     def shuffles_decr(self):
-        self.shuffles = self.shuffles - 1
+        if self.settings.shuffles != Settings.Unlimited:
+            self.shuffles = self.shuffles - 1
         self.ui.report_shuffles_changed(self.shuffles)
 
     # None => None
     def shuffles_incr(self):
-        self.shuffles = self.shuffles + 1
+        if self.settings.shuffles != Settings.Unlimited:
+            self.shuffles = self.shuffles + 1
         self.ui.report_shuffles_changed(self.shuffles)
             
     # None => None
@@ -384,6 +388,7 @@ class Game:
         if self.started:
             if len(self.undo):
                 self.undo.pop(-1).execute()
+                self.ui.report_undo_changed(len(self.undo))
             else:
                 self.ui.report_undo_nothing()
         
@@ -417,9 +422,9 @@ class Game:
             self.shuffles_decr()
 
     # None => [Point]
-    def get_fixed_points(self):
+    def get_correct_points(self):
         # int, Suit => int
-        def get_fixed_length(row, suit):
+        def get_correct_length(row, suit):
             for col in range(0, 12):
                 addr = Point(row, col)
                 if self.is_empty(addr):
@@ -429,14 +434,14 @@ class Game:
                     return col
             return 12
 
-        fixed = []
+        correct = []
         for row in range(0, 4):
             addr = Point(row, 0)
             if not self.is_empty(addr):
                 suit = self.get_card(addr).suit
-                for col in range(0, get_fixed_length(row, suit)):
-                    fixed.append(Point(row, col))
-        return fixed
+                for col in range(0, get_correct_length(row, suit)):
+                    correct.append(Point(row, col))
+        return correct
         
     # None => [Point]
     def get_movable_points(self):
@@ -480,8 +485,8 @@ class Game:
         self.board[addr.row][addr.col].set_movable()
 
     # Point, bool => None
-    def set_fixed(self, addr):
-        self.board[addr.row][addr.col].set_fixed()
+    def set_correct(self, addr):
+        self.board[addr.row][addr.col].set_correct()
 
     # Point => Card
     def get_card(self, addr):
@@ -494,8 +499,8 @@ class Game:
         return self.board[addr.row][addr.col].movable
 
     # Point => bool
-    def is_fixed(self, addr):
-        return self.board[addr.row][addr.col].fixed
+    def is_correct(self, addr):
+        return self.board[addr.row][addr.col].correct
 
     # Point => bool
     def is_empty(self, addr):

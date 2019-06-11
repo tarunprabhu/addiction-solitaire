@@ -34,7 +34,10 @@ class Mode(Enum):
     Qt = auto()
     Text = auto()
 
-
+# os.path => 
+def load_settings_from_file(filename):
+    pass
+    
 # None => int
 def main():
     parser = argparse.ArgumentParser('Addiction solitaire game')
@@ -50,19 +53,26 @@ def main():
 
     text = ui.add_parser('text', help = 'text help')
     text.add_argument('-s', '--shuffles', type = int,
+                      dest = 'shuffles',
                       help = ('Maximum number of shuffles '
-                              '(-1 for infinite shuffles)'))
+                              '(-1 for unlimited shuffles)'))
+    text.add_argument('-m', '--no-movable', default = True,
+                      dest = 'highlight_movable', action='store_false', 
+                      help = ('Do not highlight movable cards'))
+    text.add_argument('-c', '--no-correct', default = True,
+                      dest = 'highlight_correct', action='store_false',
+                      help = ('Do not highlight correct cards'))
     text.set_defaults(mode = Mode.Text)
 
     args = parser.parse_args()
 
     game = None
     if args.mode == Mode.Gtk:
-        game = Game(GameGtk, SettingsGtk)
+        game = Game(GameGtk)
     elif args.mode == Mode.Qt:
-        game = Game(GameQt, SettingsQt)
+        game = Game(GameQt)
     elif args.mode == Mode.Text:
-        game = Game(GameText, None)
+        game = Game(GameText)
     game.main()
     
     return 0

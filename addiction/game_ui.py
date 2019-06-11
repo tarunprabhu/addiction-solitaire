@@ -66,7 +66,11 @@ class GameUI(AbstractBase):
 
     # Point, bool => None
     @abstractmethod
-    def report_cell_fixed_changed(self, addr, fixed):
+    def report_cell_correct_changed(self, addr, correct):
+        pass
+
+    # int => None
+    def report_undo_changed(self, undos):
         pass
     
     # int => None

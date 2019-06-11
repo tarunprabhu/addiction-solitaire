@@ -20,6 +20,14 @@
 from enum import Enum, IntEnum, IntFlag, auto, unique
 
 @unique
+class CellFlags(IntFlag):
+    Normal = 0x0
+    Movable = 0x1
+    Selected = 0x2
+    Correct = 0x4
+
+    
+@unique
 class Face(IntEnum):
     Ace = 1
     Two = 2
@@ -231,9 +239,10 @@ class Point:
         return str(self)
 
 
-@unique
-class CellFlags(IntFlag):
-    Normal = 0x0
-    Movable = 0x1
-    Selected = 0x2
-    Fixed = 0x4
+class Color:
+    # int, int, int, float
+    def __init__(self, red, green, blue, alpha = 1.0):
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha

@@ -17,198 +17,174 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import GObject, Gtk, Gdk, GLib
-
 import os
+import json
 import sys
 
+from .types import Color
+
+
+class SettingsEncoder(json.JSONEncoder):
+    #
+    def __init__(self, *args, **kwargs):
+        super().__init__(indent = 2)
+
+    # * => dict
+    def default(self, obj):
+        if isinstance(obj, Color):
+            return { '_type': 'Color',
+                     'red': obj.red,
+                     'green': obj.green,
+                     'blue': obj.blue,
+                     'alpha': obj.alpha}
+        return super().default(obj)
+
+
+class SettingsDecoder(json.JSONDecoder):
+    # 
+    def __init__(self, *args, **kwargs):
+        super().__init__(object_hook = self.object_hook, *args, **kwargs)
+
+    # dict => *
+    def object_hook(self, obj):
+        if ('_type' in obj) and (obj['_type'] == 'Color'):
+            return Color(obj['red'], obj['green'], obj['blue'], obj['alpha'])
+        return obj
+
+
 class Settings:
-    dirname = os.path.join(GLib.get_user_config_dir(), 'addiction-solitaire')
-    filename = os.path.join(dirname, 'settings.conf')
-    group = 'solitaire'
+    dirname = os.path.join(os.path.expanduser('~'),
+                           '.config',
+                           'addiction-solitaire')
+    filename = os.path.join(dirname, 'settings.json')
+
+    # Constants
+    Unlimited = -1
 
     # Default settings
-    def_color_selected = Gdk.RGBA(78/255, 154/255, 6/255, 1.0)
-    def_color_movable = Gdk.RGBA(252/255, 175/255, 62/255, 1.0)
-    def_color_fixed = Gdk.RGBA(255, 0, 0, 1.0)
-    def_color_normal = Gdk.RGBA(230/255, 230/255, 230/255, 1.0)
+    def_color_selected = Color(164, 0, 0)
+    def_color_movable = Color(252, 175, 62)
+    def_color_correct = Color(115, 210, 22)
+    def_color_normal = Color(230, 230, 230)
     def_border = 4
     def_radius = 8
     def_shuffles = 3
     def_highlight_movable = True
-    def_highlight_fixed = False
+    def_highlight_correct = True
 
-    # Game, class
-    def __init__(self, game, SettingsUI):
+    # Game,
+    def __init__(self, game, **kwargs):
         self.game = game
-
-        self.keyfile = GLib.KeyFile.new()
-        self.read()
-        self.ui = None
-        if SettingsUI:
-            self.ui = SettingsUI(self.game)
-
-    # None => None
-    def read(self):
-        if not os.path.exists(Settings.dirname):
-            os.mkdir(Settings.dirname)
-        if not os.path.exists(Settings.filename):
-            with open(Settings.filename, 'w'):
-                pass
-                
+        self.values = dict()
         try:
-            self.keyfile.load_from_file(Settings.filename,
-                                        GLib.KeyFileFlags.KEEP_COMMENTS \
-                                        | GLib.KeyFileFlags.KEEP_TRANSLATIONS)
-        except GLib.Error:
-            print('Error reading settings file: {}'.format(Settings.filename),
+            if os.path.exists(Settings.filename):
+                with open(Settings.filename) as f:
+                    self.values = json.load(f,
+                                            cls = SettingsDecoder,
+                                            **kwargs)
+        except json.JSONDecodeError as err:
+            print('Error reading settings file: {}'.format(err),
                   file = sys.stderr)
 
-        keys = set()
-        if self.keyfile.has_group(Settings.group):
-            keys = set(self.keyfile.get_keys(Settings.group)[0])
+        for key, val in Settings.__dict__.items():
+            if key.startswith('def_'):
+                name = key.replace('def_', '') 
+                if name not in self.values:
+                    self.values[name] = val
 
-        if 'color_selected' not in keys:
-            self.color_selected = Settings.def_color_selected
-        if 'color_movable' not in keys:
-            self.color_movable = Settings.def_color_movable
-        if 'color_normal' not in keys:
-            self.color_normal = Settings.def_color_normal
-        if 'border' not in keys:
-            self.border = Settings.def_border
-        if 'radius' not in keys:
-            self.radius = Settings.def_radius
-        if 'shuffles' not in keys:
-            self.shuffles = Settings.def_shuffles
-        if 'highlight_movable' not in keys:
-            self.highlight_movable = Settings.def_highlight_movable
-        if 'highlight_fixed' not in keys:
-            self.highlight_fixed = Settings.def_highlight_fixed
-        
     # None => None
     def write(self):
-        self.keyfile.save_to_file(Settings.filename)
-        
+        if not os.path.exists(Settings.dirname):
+            os.mkdir(Settings.dirname)
+        with open(Settings.filename, 'w') as f:
+            json.dump(self.values, f, cls = SettingsEncoder)
+
     # None => Gdk.RGBA
     @property
     def color_selected(self):
-        color = Gdk.RGBA()
-        color.parse(self.keyfile.get_string(Settings.group, 'color_selected'))
-        return color
+        return self.values['color_selected']
 
     # None => Gdk.RGBA
     @property
     def color_movable(self):
-        color = Gdk.RGBA()
-        color.parse(self.keyfile.get_string(Settings.group, 'color_movable'))
-        return color
+        return self.values['color_movable']
 
     # None => Gdk.RGBA
     @property
-    def color_fixed(self):
-        color = Gdk.RGBA()
-        color.parse(self.keyfile.get_string(Settings.group, 'color_fixed'))
-        return color
-    
+    def color_correct(self):
+        return self.values['color_correct']
+
     # None => Gdk.RGBA
     @property
     def color_normal(self):
-        color = Gdk.RGBA()
-        color.parse(self.keyfile.get_string(Settings.group, 'color_normal'))
-        return color
-    
+        return self.values['color_normal']
+
     # None => int
     @property
     def border(self):
-        return self.keyfile.get_integer(Settings.group, 'border')
+        return self.values['border']
 
     # None => int
     @property
     def radius(self):
-        return self.keyfile.get_integer(Settings.group, 'radius')
-    
+        return self.values['radius']
+
     # None => int
     @property
     def shuffles(self):
-        return self.keyfile.get_integer(Settings.group, 'shuffles')
+        return self.values['shuffles']
 
     # None => bool
     @property
     def highlight_movable(self):
-        return self.keyfile.get_boolean(Settings.group, 'highlight_movable')
+        return self.values['highlight_movable']
 
     # None => bool
     @property
-    def highlight_fixed(self):
-        return self.keyfile.get_boolean(Settings.group, 'highlight_fixed')
-    
+    def highlight_correct(self):
+        return self.values['highlight_correct']
+
     # * => None
     @color_selected.setter
     def color_selected(self, val):
-        color = Gdk.RGBA()
-        if isinstance(val, Gdk.RGBA):
-            color = Gdk.RGBA.copy(val)
-        elif not color.parse(val):
-            raise RuntimeError('Could not set color from "{}"'.format(val))
-        self.keyfile.set_string(Settings.group, 'color_selected',
-                                color.to_string())
+        self.values['color_selected'] = val
 
     # * => None
     @color_movable.setter
     def color_movable(self, val):
-        color = Gdk.RGBA()
-        if isinstance(val, Gdk.RGBA):
-            color = Gdk.RGBA.copy(val)
-        elif not color.parse(val):
-            raise RuntimeError('Could not set color from "{}"'.format(val))
-        self.keyfile.set_string(Settings.group, 'color_movable',
-                                color.to_string())
+        self.values['color_movable'] = val
 
     # * => None
-    @color_fixed.setter
-    def color_fixed(self, val):
-        color = Gdk.RGBA()
-        if isinstance(val, Gdk.RGBA):
-            color = Gdk.RGBA.copy(val)
-        elif not color.parse(val):
-            raise RuntimeError('Could not set color from "{}"'.format(val))
-        self.keyfile.set_string(Settings.group, 'color_fixed',
-                                color.to_string())
-        
+    @color_correct.setter
+    def color_correct(self, val):
+        self.values['color_correct'] = val
+
     # * => None
     @color_normal.setter
     def color_normal(self, val):
-        color = Gdk.RGBA()
-        if isinstance(val, Gdk.RGBA):
-            color = Gdk.RGBA.copy(val)
-        elif not color.parse(val):
-            raise RuntimeError('Could not set color from "{}"'.format(val))
-        self.keyfile.set_string(Settings.group, 'color_normal',
-                                color.to_string())
-        
+        self.values['color_normal'] = val
+
     # int => None
     @border.setter
     def border(self, val):
-        self.keyfile.set_integer(Settings.group, 'border', val)
+        self.values['border'] = val
 
     # int => None
     @radius.setter
     def radius(self, val):
-        self.keyfile.set_integer(Settings.group, 'radius', val)
-        
+        self.values['radius'] = val
+
     # int => None
     @shuffles.setter
     def shuffles(self, val):
-        self.keyfile.set_integer(Settings.group, 'shuffles', val)
+        self.values['shuffles'] = val
 
     # bool => None
     @highlight_movable.setter
     def highlight_movable(self, val):
-        self.keyfile.set_boolean(Settings.group, 'highlight_movable', val)
+        self.values['highlight_movable'] = val
 
     # bool => None
-    @highlight_fixed.setter
-    def highlight_fixed(self, val):
-        self.keyfile.set_boolean(Settings.group, 'highlight_fixed', val)
+    @highlight_correct.setter
+    def highlight_correct(self, val):
+        self.values['highlight_correct'] = val

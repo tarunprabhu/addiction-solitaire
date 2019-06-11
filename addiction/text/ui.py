@@ -20,6 +20,7 @@
 import urwid
 
 from ..game_ui import GameUI
+from ..settings import Settings
 from ..types import Suit, Direction, CellFlags
 
 class Cell:
@@ -79,9 +80,9 @@ class Cell:
                             str(self.card)))
 
     # None => None
-    def set_fixed(self):
-        self.attr_box.set_attr_map({None: 'box_fixed'})
-        self.text.set_text((self.get_card_attr(CellFlags.Fixed),
+    def set_correct(self):
+        self.attr_box.set_attr_map({None: 'box_correct'})
+        self.text.set_text((self.get_card_attr(CellFlags.Correct),
                             str(self.card)))
 
     # None => None
@@ -108,7 +109,7 @@ class GameText(GameUI):
             ('card_movable_black', 'italics', ''),
             ('box_movable', 'dark blue', ''),
             ('box_selected', 'yellow', ''),
-            ('box_fixed', 'light green', ''),
+            ('box_correct', 'light green', ''),
             ('box_normal', 'light gray', '')]
         
         self.cells = []
@@ -184,16 +185,16 @@ class GameText(GameUI):
         cell = self.cells[addr.row][addr.col]
         if movable:
             cell.set_movable()
-        elif self.game.is_fixed(addr):
-            cell.set_fixed()
+        elif self.game.is_correct(addr):
+            cell.set_correct()
         else:
             cell.set_normal()
 
     # Point, bool => None
-    def report_cell_fixed_changed(self, addr, fixed):
+    def report_cell_correct_changed(self, addr, correct):
         cell = self.cells[addr.row][addr.col]
-        if fixed:
-            cell.set_fixed()
+        if correct:
+            cell.set_correct()
         elif self.game.is_selected(addr):
             cell.set_selected()
         elif self.game.is_movable(addr):
@@ -208,14 +209,17 @@ class GameText(GameUI):
             cell.set_selected()
         elif self.game.is_movable(addr):
             cell.set_movable()
-        elif self.game.is_fixed(addr):
-            cell.set_fixed()
+        elif self.game.is_correct(addr):
+            cell.set_correct()
         else:
             cell.set_normal()
 
     # int => None
     def report_shuffles_changed(self, shuffles):
-        self.footer.set_text('Shuffles remaining: {}'.format(shuffles))
+        if shuffles != Settings.Unlimited:
+            self.footer.set_text('Shuffles remaining: {}'.format(shuffles))
+        else:
+            self.footer.set_text('Shuffles remaining: Unlimited')
 
     # int => None
     def report_movable_changed(self, movable):

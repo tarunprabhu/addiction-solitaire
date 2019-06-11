@@ -24,8 +24,11 @@ from gi.repository.GdkPixbuf import Pixbuf as GdkPixbuf
 
 import os
 
+from .dialog import SettingsGtk
+from .util import as_rgba, as_color
 from ..game_ui import GameUI
-from ..types import Suit, Face, Direction, Point
+from ..settings import Settings
+from ..types import Suit, Face, Direction, Point, Color
 
 class GameGtk(GameUI):
     filename = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -41,15 +44,18 @@ class GameGtk(GameUI):
 
         self.builder = Gtk.Builder.new()
         self.builder.add_objects_from_file(GameGtk.filename,
-                                           ['win_main', 'dlg_about'])
+                                           ['win_main', 'dlg_about', 'dlg_quit'])
         self.builder.connect_signals(self)
 
         self.win_main = self.builder.get_object('win_main')
         self.grd_board = self.builder.get_object('grd_board')
         self.dlg_about = self.builder.get_object('dlg_about')
+        self.dlg_quit = self.builder.get_object('dlg_quit')
         self.lbl_shuffles = self.builder.get_object('lbl_shuffles')
         self.lbl_movable = self.builder.get_object('lbl_movable')
         self.lbl_message = self.builder.get_object('lbl_message')
+        self.mitm_undo = self.builder.get_object('mitm_undo')
+        self.mitm_shuffle = self.builder.get_object('mitm_shuffle')
         for i in range(0, 4):
             for j in range(0, 13):
                 suffix = '{}_{}'.format(i, j)
@@ -74,8 +80,8 @@ class GameGtk(GameUI):
                                                          card_width,
                                                          card_height,
                                                          False))
-        self.fg = \
-            self.lbl_message.get_style_context().get_color(Gtk.StateFlags.NORMAL)
+        self.fg = as_color(
+            self.lbl_message.get_style_context().get_color(Gtk.StateFlags.NORMAL))
 
     # None => None
     def main(self):
@@ -90,8 +96,28 @@ class GameGtk(GameUI):
         self.dlg_about.run()
 
     # * => None
+    def action_new(self, *args):
+        if self.game.started:
+            response = self.dlg_quit.run()
+            self.dlg_quit.hide()
+            if response in [Gtk.ResponseType.YES]:
+                self.game.do_game_new()
+        else:
+            self.game.do_game_new()
+
+    # * => None
+    def action_quit(self, *args):
+        if self.game.started:
+            response = self.dlg_quit.run()
+            self.dlg_quit.hide()
+            if response in [Gtk.ResponseType.YES]:
+                self.game.do_quit()
+        else:
+            self.game.do_quit()
+        
+    # * => None
     def action_preferences(self, mitm_game_preferences):
-        self.settings.ui.run_dialog()
+        SettingsGtk(self.game).run()
 
     # Gtk.Window, Gdk.Event => bool
     def action_key_press(self, win_main, evt):
@@ -146,37 +172,59 @@ class GameGtk(GameUI):
 
     # Point, bool => None
     def report_cell_movable_changed(self, addr, movable):
-        if movable and self.settings.highlight_movable:
-            self.set_widget_css(self.get_frame(addr), self.get_css_movable())
+        css = None
+        if movable:
+            css = self.get_css_movable()
+        elif self.game.is_correct(addr):
+            css = self.get_css_correct()
         else:
-            self.set_widget_css(self.get_frame(addr), self.get_css_normal())
+            css = self.get_css_normal()    
+        self.set_widget_css(self.get_frame(addr), css)
 
     # Point, bool => None
     def report_cell_selected_changed(self, addr, selected):
+        css = None
         if selected:
-            self.set_widget_css(self.get_frame(addr), self.get_css_selected())
+            css = self.get_css_selected()
         elif self.game.is_movable(addr):
-            self.set_widget_css(self.get_frame(addr), self.get_css_movable())
-        elif self.game.is_fixed(addr):
-            self.set_widget_css(self.get_frame(addr), self.get_css_fixed())
+            css = self.get_css_movable()
+        elif self.game.is_correct(addr):
+            css = self.get_css_correct()
         else:
-            self.set_widget_css(self.get_frame(addr), self.get_css_normal())
+            css = self.get_css_normal()
+        self.set_widget_css(self.get_frame(addr), css)
         self.lbl_message.set_text('')
 
     # Point, bool => None
-    def report_cell_fixed_changed(self, addr, fixed):
-        if fixed:
-            self.set_widget_css(self.get_frame(addr), self.get_css_fixed())
+    def report_cell_correct_changed(self, addr, correct):
+        css = None
+        if correct:
+            css = self.get_css_correct()
         elif self.game.is_selected(addr):
-            self.set_widget_css(self.get_frame(addr), self.get_css_selected())
+            css = self.get_css_selected()
         elif self.game.is_movable(addr):
-            self.set_widget_css(self.get_frame(addr), self.get_css_movable())
+            css = self.get_css_movable()
         else:
-            self.set_widget_css(self.get_frame(addr), self.get_css_normal())
+            css = self.get_css_normal()
+        self.set_widget_css(self.get_frame(addr), css)
+
+    # int => None
+    def report_undo_changed(self, undos):
+        if undos == 0:
+            self.mitm_undo.set_sensitive(False)
+        else:
+            self.mitm_undo.set_sensitive(True)
         
     # int => None
     def report_shuffles_changed(self, shuffles):
-        self.lbl_shuffles.set_text(str(shuffles))
+        if shuffles != Settings.Unlimited:
+            self.lbl_shuffles.set_text(str(shuffles))
+        else:
+            self.lbl_shuffles.set_text('Unlimited')
+        if shuffles == 0:
+            self.mitm_shuffle.set_sensitive(False)
+        else:
+            self.mitm_shuffle.set_sensitive(True)
         self.lbl_message.set_text('')
 
     # int => None
@@ -193,10 +241,10 @@ class GameGtk(GameUI):
         color = None
         text = None
         if win:
-            color = Gdk.RGBA(0x33/255, 0xCC/255, 0x33/255, 1.0)
+            color = Color(0x33, 0xCC, 0x33)
             text = 'You win!'
         else:
-            color = Gdk.RGBA(0xCC/255, 0x33/255, 0x33/255, 1.0)
+            color = Color(0xCC, 0x33, 0x33, 1.0)
             text = 'Game over'
 
         css = []
@@ -204,7 +252,7 @@ class GameGtk(GameUI):
         css.append('  background-color: {};'.format(
             self.format_css_color(color)))
         css.append('  color: {};'.format(
-            self.format_css_color(Gdk.RGBA(255, 255, 255, 1.0))))
+            self.format_css_color(Color(255, 255, 255))))
         css.append('  font-weight: bold;')
         css.append('}')
         
@@ -216,13 +264,14 @@ class GameGtk(GameUI):
         css = []
         css.append('label {')
         css.append('  background-color: {};'.format(
-            self.format_css_color(Gdk.RGBA(0, 0, 0, 0))))
+            self.format_css_color(Color(0, 0, 0, 0))))
         css.append('  color: {};'.format(self.format_css_color(self.fg)))
         css.append('  font-weight: normal;')
         css.append('}')
 
         self.set_widget_css(self.lbl_message, '\n'.join(css))
-        self.lbl_shuffles.set_text(str(self.game.shuffles))
+        self.report_shuffles_changed(self.game.shuffles)
+        self.report_undo_changed(0)
         self.lbl_message.set_text('')
 
     # None => None
@@ -241,12 +290,12 @@ class GameGtk(GameUI):
     def get_frame(self, addr):
         return self.board[addr.row][addr.col]
         
-    # Gdk.RGBA => str
+    # Color => str
     def format_css_color(self, color):
         return 'rgba({},{},{},{})'.format(
-            int(color.red * 255),
-            int(color.green * 255),
-            int(color.blue * 255),
+            color.red,
+            color.green,
+            color.blue,
             color.alpha)
     
     # Gdk.RGBA => str
@@ -273,9 +322,9 @@ class GameGtk(GameUI):
             return self.get_css_normal()
 
     # None => str
-    def get_css_fixed(self):
-        if self.settings.highlight_fixed:
-            return self.get_border_css(self.settings.color_fixed)
+    def get_css_correct(self):
+        if self.settings.highlight_correct:
+            return self.get_border_css(self.settings.color_correct)
         else:
             return self.get_css_normal()
         

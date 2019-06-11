@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from abc import ABC as AbstractBase, abstractmethod
+
 from .settings import Settings
 
-class SettingsUI:
+class SettingsUI(AbstractBase):
     # Game
     def __init__(self, game):
         self.game = game
@@ -28,3 +30,8 @@ class SettingsUI:
     @property
     def settings(self):
         return self.game.settings
+
+    # None => None
+    @abstractmethod
+    def run(self):
+        pass
