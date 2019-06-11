@@ -53,6 +53,7 @@ class SettingsDecoder(json.JSONDecoder):
 
 
 class Settings:
+    # FIXME: Make this more platform independent
     dirname = os.path.join(os.path.expanduser('~'),
                            '.config',
                            'addiction-solitaire')

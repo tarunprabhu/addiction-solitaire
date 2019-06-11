@@ -49,6 +49,16 @@ class GameUI(AbstractBase):
     def action_button_press(self, *args):
         pass
 
+    # * => None
+    @abstractmethod
+    def action_new(self, *args):
+        pass
+
+    # * => None
+    @abstractmethod
+    def action_quit(self, *args):
+        pass
+    
     # Point, Card => None
     @abstractmethod
     def report_cell_card_changed(self, addr, card):
@@ -70,6 +80,7 @@ class GameUI(AbstractBase):
         pass
 
     # int => None
+    @abstractmethod
     def report_undo_changed(self, undos):
         pass
     
@@ -112,14 +123,6 @@ class GameUI(AbstractBase):
     @abstractmethod
     def report_shuffle(self):
         pass
-
-    # * => None
-    def action_new(self, *args):
-        self.game.do_game_new()
-
-    # * => None
-    def action_quit(self, *args):
-        self.game.do_quit()
 
     # * => None
     def action_shuffle(self, *args):
