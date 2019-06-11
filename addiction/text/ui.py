@@ -76,7 +76,8 @@ class Cell:
 
     # None => None
     def set_movable(self):
-        self.attr_box.set_attr_map({None: 'box_movable'})
+        if self.game.settings.highlight_movable:
+            self.attr_box.set_attr_map({None: 'box_movable'})
         self.text.set_text((self.get_card_attr(CellFlags.Movable),
                             str(self.card)))
 
@@ -88,7 +89,8 @@ class Cell:
 
     # None => None
     def set_correct(self):
-        self.attr_box.set_attr_map({None: 'box_correct'})
+        if self.game.settings.highlight_correct:
+            self.attr_box.set_attr_map({None: 'box_correct'})
         self.text.set_text((self.get_card_attr(CellFlags.Correct),
                             str(self.card)))
 

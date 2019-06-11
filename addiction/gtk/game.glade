@@ -483,7 +483,7 @@
     <property name="title" translatable="yes">Addiction Solitaire</property>
     <property name="resizable">False</property>
     <property name="icon">../../icons/32x32/addiction-solitaire.png</property>
-    <signal name="destroy" handler="action_quit" swapped="no"/>
+    <signal name="destroy" handler="action_force_quit" swapped="no"/>
     <signal name="key-press-event" handler="action_key_press" swapped="no"/>
     <child>
       <object class="GtkGrid" id="grd_main">

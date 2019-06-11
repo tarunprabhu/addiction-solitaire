@@ -114,7 +114,11 @@ class GameGtk(GameUI):
                 self.game.do_quit()
         else:
             self.game.do_quit()
-        
+
+    # Gtk.Window => None
+    def action_force_quit(self, win_main):
+        self.game.do_quit()
+            
     # * => None
     def action_preferences(self, mitm_game_preferences):
         SettingsGtk(self.game).run()

@@ -137,8 +137,8 @@ class Cell:
 
 class Game:
     # class
-    def __init__(self, GameUI):
-        self.settings = Settings(self)
+    def __init__(self, GameUI, **kwargs):
+        self.settings = Settings(self, **kwargs)
         self.ui = GameUI(self)
         
         self.points = set()
@@ -292,7 +292,6 @@ class Game:
         
     # None => None
     def do_quit(self):
-        self.settings.write()
         self.ui.quit()
 
     # Direction => None

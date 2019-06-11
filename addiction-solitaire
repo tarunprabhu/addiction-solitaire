@@ -52,10 +52,10 @@ def main():
     qt.set_defaults(mode = Mode.Qt)
 
     text = ui.add_parser('text', help = 'text help')
-    text.add_argument('-s', '--shuffles', type = int,
-                      dest = 'shuffles',
-                      help = ('Maximum number of shuffles '
-                              '(-1 for unlimited shuffles)'))
+    text.add_argument('-s', '--shuffles', default = 3, 
+                      dest = 'shuffles', action='store_const', const = -1,
+                      help = ('Maximum number of shuffles. '
+                              'If no number is provided, unlimited shuffles'))
     text.add_argument('-m', '--no-movable', default = True,
                       dest = 'highlight_movable', action='store_false', 
                       help = ('Do not highlight movable cards'))
@@ -72,7 +72,10 @@ def main():
     elif args.mode == Mode.Qt:
         game = Game(GameQt)
     elif args.mode == Mode.Text:
-        game = Game(GameText)
+        game = Game(GameText,
+                    shuffles = args.shuffles,
+                    highlight_movable = args.highlight_movable,
+                    highlight_correct = args.highlight_correct)
     game.main()
     
     return 0

@@ -74,25 +74,32 @@ class Settings:
     def_highlight_correct = True
 
     # Game,
-    def __init__(self, game, **kwargs):
+    def __init__(self, game, **overrides):
         self.game = game
         self.values = dict()
+        self.overrides = dict(**overrides)
+        self.read()
+
+    # None => None
+    def read(self):
         try:
             if os.path.exists(Settings.filename):
                 with open(Settings.filename) as f:
                     self.values = json.load(f,
-                                            cls = SettingsDecoder,
-                                            **kwargs)
+                                            cls = SettingsDecoder)
         except json.JSONDecodeError as err:
             print('Error reading settings file: {}'.format(err),
-                  file = sys.stderr)
+                  file = sys.stderr)        
 
+        for key, val in self.overrides.items():
+            self.values[key] = val
+            
         for key, val in Settings.__dict__.items():
             if key.startswith('def_'):
                 name = key.replace('def_', '') 
                 if name not in self.values:
                     self.values[name] = val
-
+            
     # None => None
     def write(self):
         if not os.path.exists(Settings.dirname):
