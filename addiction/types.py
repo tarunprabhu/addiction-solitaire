@@ -165,9 +165,9 @@ class Card:
                   Face.King: 'K',
                   Face.Ten: 'T'}
         if self.face in faces:
-            return '{:>2}{}'.format(faces[self.face], suits[self.suit])
+            return '{}{}'.format(faces[self.face], suits[self.suit])
         else:
-            return '{:>2}{}'.format(int(self.face), suits[self.suit])
+            return '{}{}'.format(int(self.face), suits[self.suit])
 
     # None => str
     def __repr__(self):

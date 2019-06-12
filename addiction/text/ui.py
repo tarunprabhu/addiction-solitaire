@@ -38,7 +38,7 @@ class Cell:
         self.col = col
         self.card = None
 
-        self.text = urwid.Text('  ')
+        self.text = urwid.Text('  ', align = 'center')
         self.attr_text = urwid.AttrMap(self.text, None)
 
         self.box = urwid.LineBox(self.attr_text)
@@ -112,12 +112,12 @@ class GameText(GameUI):
             ('win', 'white,bold', 'dark green'),
             ('lose', 'white,bold', 'dark red'),
             ('card_empty', '', ''),
-            ('card_red', 'light red', ''),
-            ('card_black', '', ''),
-            ('card_selected_red', 'light red,bold', ''),
-            ('card_selected_black', 'bold', ''),
-            ('card_movable_red', 'light red,italics', ''),
-            ('card_movable_black', 'italics', ''),
+            ('card_red', 'light red,bold', ''),
+            ('card_black', 'bold', ''),
+            ('card_selected_red', 'light red,bold,italics,underline', ''),
+            ('card_selected_black', 'bold,italics,underline', ''),
+            ('card_movable_red', 'light red,bold,italics', ''),
+            ('card_movable_black', 'bold,italics', ''),
             ('box_movable', 'dark blue', ''),
             ('box_selected', 'yellow', ''),
             ('box_correct', 'light green', ''),
