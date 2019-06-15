@@ -24,11 +24,13 @@ from gi.repository.GdkPixbuf import Pixbuf as GdkPixbuf
 
 import os
 
+from .css import CSS
 from .dialog import SettingsGtk
 from .util import as_rgba, as_color
 from ..game_ui import GameUI
 from ..settings import Settings
 from ..types import Suit, Face, Direction, Point, Color
+        
 
 class GameGtk(GameUI):
     filename = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -44,28 +46,38 @@ class GameGtk(GameUI):
 
         self.builder = Gtk.Builder.new()
         self.builder.add_objects_from_file(GameGtk.filename,
-                                           ['win_main', 'dlg_about', 'dlg_quit'])
+                                           ['win_main',
+                                            'dlg_about',
+                                            'dlg_quit',
+                                            'dlg_result'])
         self.builder.connect_signals(self)
 
         self.win_main = self.builder.get_object('win_main')
         self.grd_board = self.builder.get_object('grd_board')
         self.dlg_about = self.builder.get_object('dlg_about')
         self.dlg_quit = self.builder.get_object('dlg_quit')
+        self.dlg_result = self.builder.get_object('dlg_result')
+        self.lbl_time = self.builder.get_object('lbl_time')
+        self.lbl_moves = self.builder.get_object('lbl_moves')
         self.lbl_shuffles = self.builder.get_object('lbl_shuffles')
         self.lbl_movable = self.builder.get_object('lbl_movable')
-        self.lbl_message = self.builder.get_object('lbl_message')
         self.mitm_undo = self.builder.get_object('mitm_undo')
         self.mitm_shuffle = self.builder.get_object('mitm_shuffle')
+        self.btn_undo = self.builder.get_object('btn_undo')
+        self.btn_shuffle = self.builder.get_object('btn_shuffle')
+        self.lbl_result = self.builder.get_object('lbl_result')
+        self.grd_sidebar = self.builder.get_object('grd_sidebar')
+        self.grd_buttons = self.builder.get_object('grd_buttons')
+
+        self.win_main.show_all()
         for i in range(0, 4):
             for j in range(0, 13):
-                suffix = '{}_{}'.format(i, j)
-                evt = self.builder.get_object('evt_{}'.format(suffix))
-                frm = self.builder.get_object('frm_{}'.format(suffix))
+                evt = self.builder.get_object('evt_{}_{}'.format(i, j))
+                frm = self.builder.get_object('frm_{}_{}'.format(i, j))
                 evt.connect('button-press-event',
                             self.action_button_press,
-                            Point(i, j))
+                            self.game.points[i][j])
                 self.board[i][j] = frm
-        self.win_main.show_all()
 
         cards_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -83,9 +95,13 @@ class GameGtk(GameUI):
                                                          card_width,
                                                          card_height,
                                                          False))
-        self.fg = as_color(
-            self.lbl_message.get_style_context().get_color(Gtk.StateFlags.NORMAL))
 
+        self.css_border_normal = None
+        self.css_border_selected = None
+        self.css_border_movable = None
+        self.css_border_correct = None
+        self.report_update_settings()
+                
     # None => None
     def main(self):
         Gtk.main()
@@ -144,7 +160,7 @@ class GameGtk(GameUI):
         elif key in [Gdk.KEY_Return, Gdk.KEY_KP_Enter]:
             if self.game.selected:
                 self.game.do_move_card(self.game.selected)
-        elif key in [Gdk.KEY_q, Gdk.KEY_Escape]:
+        elif key in [Gdk.KEY_Escape]:
             self.action_quit()
         elif key in [Gdk.KEY_n]:
             self.action_new()
@@ -167,6 +183,16 @@ class GameGtk(GameUI):
                     self.game.do_select(addr)
                 
         return False
+
+    # None => None
+    def report_update_settings(self):
+        self.grd_sidebar.set_visible(self.settings.show_sidebar)
+        self.grd_buttons.set_visible(self.settings.show_buttons)
+
+        self.css_border_normal = self.get_border_css(self.settings.color_normal)
+        self.css_border_movable = self.get_border_css(self.settings.color_movable)
+        self.css_border_selected = self.get_border_css(self.settings.color_selected)
+        self.css_border_correct = self.get_border_css(self.settings.color_correct)
     
     # Point, Card => None
     def report_cell_card_changed(self, addr, card):
@@ -179,169 +205,129 @@ class GameGtk(GameUI):
 
     # Point, bool => None
     def report_cell_movable_changed(self, addr, movable):
-        css = None
         if movable:
-            css = self.get_css_movable()
+            self.set_border_style(self.get_frame(addr), self.get_css_movable())
         elif self.game.is_correct(addr):
-            css = self.get_css_correct()
+            self.set_border_style(self.get_frame(addr), self.get_css_correct())
         else:
-            css = self.get_css_normal()    
-        self.set_widget_css(self.get_frame(addr), css)
+            self.set_border_style(self.get_frame(addr), self.get_css_normal())
 
     # Point, bool => None
     def report_cell_selected_changed(self, addr, selected):
-        css = None
         if selected:
-            css = self.get_css_selected()
+            self.set_border_style(self.get_frame(addr), self.get_css_selected())
         elif self.game.is_movable(addr):
-            css = self.get_css_movable()
+            self.set_border_style(self.get_frame(addr), self.get_css_movable())
         elif self.game.is_correct(addr):
-            css = self.get_css_correct()
+            self.set_border_style(self.get_frame(addr), self.get_css_correct())
         else:
-            css = self.get_css_normal()
-        self.set_widget_css(self.get_frame(addr), css)
-        self.lbl_message.set_text('')
+            self.set_border_style(self.get_frame(addr), self.get_css_normal())
 
     # Point, bool => None
     def report_cell_correct_changed(self, addr, correct):
-        css = None
         if correct:
-            css = self.get_css_correct()
+            self.set_border_style(self.get_frame(addr), self.get_css_correct())
         elif self.game.is_selected(addr):
-            css = self.get_css_selected()
+            self.set_border_style(self.get_frame(addr), self.get_css_selected())
         elif self.game.is_movable(addr):
-            css = self.get_css_movable()
+            self.set_border_style(self.get_frame(addr), self.get_css_movable())
         else:
-            css = self.get_css_normal()
-        self.set_widget_css(self.get_frame(addr), css)
+            self.set_border_style(self.get_frame(addr), self.get_css_normal())
 
+    # int, int, int => None
+    def report_time_changed(self, hrs, mins, secs):
+        components = []
+        if hrs:
+            components.append(str(hrs))
+        components.append('{:02}'.format(mins))
+        components.append('{:02}'.format(secs))
+        self.lbl_time.set_text(':'.join(components))
+            
     # int => None
     def report_undo_changed(self, undos):
-        if undos == 0:
-            self.mitm_undo.set_sensitive(False)
-        else:
-            self.mitm_undo.set_sensitive(True)
+        self.mitm_undo.set_sensitive(undos)
+        self.btn_undo.set_sensitive(undos)
         
     # int => None
     def report_shuffles_changed(self, shuffles):
-        if shuffles != Settings.Unlimited:
-            self.lbl_shuffles.set_text(str(shuffles))
+        if self.settings.is_unlimited_shuffles():
+            self.lbl_shuffles.set_text('{} (Unlimited)'.format(shuffles))
         else:
-            self.lbl_shuffles.set_text('Unlimited')
-        if shuffles == 0:
-            self.mitm_shuffle.set_sensitive(False)
-        else:
-            self.mitm_shuffle.set_sensitive(True)
-        self.lbl_message.set_text('')
+            self.lbl_shuffles.set_text('{} (of {})'.format(shuffles,
+                                                           self.settings.shuffles))
+            self.mitm_shuffle.set_sensitive(shuffles < self.settings.shuffles)
+            self.btn_shuffle.set_sensitive(shuffles < self.settings.shuffles)
 
     # int => None
+    def report_moves_changed(self, moves):
+        self.lbl_moves.set_text(str(moves))
+                
+    # int => None
     def report_movable_changed(self, movable):
-        self.lbl_movable.set_text(str(movable))
-        self.lbl_message.set_text('')
-
-    # None => None
-    def report_movable_zero(self):
-        self.lbl_message.set_text('No moves available. Press F5 to reshuffle')
+        self.lbl_moves.set_text(str(self.game.moves))
+        self.lbl_movable.set_text('({} available)'.format(movable))
             
     # bool => None
     def report_game_over(self, win):
-        color = None
-        text = None
         if win:
-            color = Color(0x33, 0xCC, 0x33)
-            text = 'You win!'
+            self.lbl_result.set_text('You win!')
         else:
-            color = Color(0xCC, 0x33, 0x33, 1.0)
-            text = 'Game over'
-
-        css = []
-        css.append('label {')
-        css.append('  background-color: {};'.format(
-            self.format_css_color(color)))
-        css.append('  color: {};'.format(
-            self.format_css_color(Color(255, 255, 255))))
-        css.append('  font-weight: bold;')
-        css.append('}')
+            self.lbl_result.set_text('Game over!')
+        response = self.dlg_result.run()
+        if response in [Gtk.ResponseType.YES]:
+            self.game.do_game_new()
+            self.dlg_result.hide()
+        else:
+            self.game.do_quit()
         
-        self.set_widget_css(self.lbl_message, '\n'.join(css))
-        self.lbl_message.set_text(text)
-
     # None => None
     def report_game_new(self):
-        css = []
-        css.append('label {')
-        css.append('  background-color: {};'.format(
-            self.format_css_color(Color(0, 0, 0, 0))))
-        css.append('  color: {};'.format(self.format_css_color(self.fg)))
-        css.append('  font-weight: normal;')
-        css.append('}')
-
-        self.set_widget_css(self.lbl_message, '\n'.join(css))
-        self.report_shuffles_changed(self.game.shuffles)
         self.report_undo_changed(0)
-        self.lbl_message.set_text('')
-
-    # None => None
-    def report_undo_nothing(self):
-        self.lbl_message.set_text('Nothing to undo')
-
-    # None => None
-    def report_move(self, src, dst):
-        self.lbl_message.set_text('')
-
-    # None => None
-    def report_shuffle(self):
-        self.lbl_message.set_text('')
+        self.report_moves_changed(0)
+        self.report_shuffles_changed(0)
+        self.report_time_changed(0, 0, 0)
 
     # Point => Gtk.Frame
     def get_frame(self, addr):
         return self.board[addr.row][addr.col]
-        
-    # Color => str
-    def format_css_color(self, color):
-        return 'rgba({},{},{},{})'.format(
-            color.red,
-            color.green,
-            color.blue,
-            color.alpha)
     
-    # Gdk.RGBA => str
+    # Color => Gtk.CssProvider
     def get_border_css(self, color):
-        css = []
-        css.append('frame {')
-        css.append('  border-style: solid;')
-        css.append('  border-radius: {}px;'.format(self.settings.radius))
-        css.append('  border-width: {}px;'.format(self.settings.border))
-        css.append('  border-color: {};'.format(self.format_css_color(color)))
-        css.append('}')
-
-        return '\n'.join(css)
+        return CSS('frame',
+                   { 'border-style': 'solid',
+                     'border-radius': (self.settings.radius, 'px'),
+                     'border-width': (self.settings.border, 'px'),
+                     'border-color': color}).get_provider()
     
     # None => str
     def get_css_selected(self):
-        return self.get_border_css(self.settings.color_selected)
+        return self.css_border_selected 
 
     # None => str
     def get_css_movable(self):
         if self.settings.highlight_movable:
-            return self.get_border_css(self.settings.color_movable)
+            return self.css_border_movable
         else:
-            return self.get_css_normal()
+            return self.css_border_normal
 
     # None => str
     def get_css_correct(self):
         if self.settings.highlight_correct:
-            return self.get_border_css(self.settings.color_correct)
+            return self.css_border_correct
         else:
-            return self.get_css_normal()
+            return self.css_border_normal
         
     # None => str
     def get_css_normal(self):
-        return self.get_border_css(self.settings.color_normal)
+        return self.css_border_normal
         
-    # Gtk.Widget, str => None
-    def set_widget_css(self, widget, css):
-        provider = Gtk.CssProvider.new()
-        provider.load_from_data(css.encode('utf-8'))
-        widget.get_style_context() \
-              .add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+    # Gtk.Widget, Gtk.CssProvider => None
+    def set_border_style(self, widget, css):
+        style = widget.get_style_context()
+
+        style.remove_provider(self.css_border_normal)
+        style.remove_provider(self.css_border_selected)
+        style.remove_provider(self.css_border_movable)
+        style.remove_provider(self.css_border_correct)
+
+        style.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)

@@ -53,6 +53,8 @@ class SettingsGtk(SettingsUI):
         self.chk_correct = self.builder.get_object('chk_correct')
         self.cbtn_correct = self.builder.get_object('cbtn_correct')
         self.frm_correct = self.builder.get_object('frm_correct')
+        self.chk_sidebar = self.builder.get_object('chk_sidebar')
+        self.chk_buttons = self.builder.get_object('chk_buttons')
         self.dlg_preferences = self.builder.get_object('dlg_preferences')
 
         binding_flags = \
@@ -73,6 +75,8 @@ class SettingsGtk(SettingsUI):
         self.cbtn_correct.set_rgba(as_rgba(self.settings.color_correct))
         self.chk_movable.set_active(self.settings.highlight_movable)
         self.chk_correct.set_active(self.settings.highlight_correct)
+        self.chk_sidebar.set_active(self.settings.show_sidebar)
+        self.chk_buttons.set_active(self.settings.show_buttons)
         self.dlg_preferences.set_transient_for(self.game.ui.win_main)
         
     # None => None
@@ -80,8 +84,7 @@ class SettingsGtk(SettingsUI):
         response = self.dlg_preferences.run()
         if response == Gtk.ResponseType.OK:
             self.settings.write()
-            if self.game.started:
-                self.game.do_game_new()
+            self.game.do_update_settings()
         elif response == Gtk.ResponseType.CANCEL \
              or response == Gtk.ResponseType.DELETE_EVENT:
             self.settings.read()
@@ -117,3 +120,10 @@ class SettingsGtk(SettingsUI):
     def cb_spn_shuffles_value_changed(self, spn_shuffles):
         self.settings.shuffles = spn_shuffles.get_value()
         
+    # Gtk.ToggleButton => None
+    def cb_chk_sidebar_toggled(self, chk_sidebar):
+        self.settings.show_sidebar = chk_sidebar.get_active()
+
+    # Gtk.ToggleButton => None
+    def cb_chk_buttons_toggled(self, chk_buttons):
+        self.settings.show_buttons = chk_buttons.get_active()

@@ -24,6 +24,8 @@ from gi.repository import Gtk, Gdk, GLib
 import random
 from abc import ABC as AbstractBase, abstractmethod
 from copy import deepcopy
+from threading import Timer
+from time import sleep
 
 from .types import Card, Face, Suit, Direction, Point, CellFlags
 from .settings import Settings
@@ -65,7 +67,7 @@ class ShuffleAction(UndoAction):
         for card, addr in self.cards.items():
             if addr:
                 self.game.set_card(addr, card)
-        self.game.shuffles_incr()
+        self.game.shuffles_decr()
         self.game.refresh(self.selected)
 
 
@@ -84,7 +86,7 @@ class Cell:
         self.clear_flags()
         if card:
             self.game.ui.report_cell_card_changed(self.addr, None)
-        
+
     # None => None
     def clear_flags(self):
         self._flags = CellFlags.Normal
@@ -138,19 +140,22 @@ class Cell:
 class Game:
     # class
     def __init__(self, GameUI, **kwargs):
-        self.settings = Settings(self, **kwargs)
-        self.ui = GameUI(self)
-        
-        self.points = set()
+        self.points = []
+        for i in range(0, 4):
+            self.points.append([])
+            for j in range(0, 13):
+                self.points[i].append(Point(self.points, i, j))
+                
+        self.all_points = set()
         for i in range(0, 4):
             for j in range(0, 13):
-                self.points.add(Point(i, j))
+                self.all_points.add(self.points[i][j])
 
         self.board = []
         for i in range(0, 4):
             self.board.append([])
             for j in range(0, 13):
-                self.board[i].append(Cell(self, Point(i, j)))
+                self.board[i].append(Cell(self, self.points[i][j]))
 
         self.cards = dict()
         for suit in Suit:
@@ -158,10 +163,19 @@ class Game:
                 self.cards[Card(suit, face)] = None
 
         self.started = False
+        self.timer = None
         self.selected = None
+        self.shuffles = 0
+        self.moves = 0
         self.undo = []
-        self.shuffles = self.settings.shuffles
+        self.empty = []
+        self.hrs = 0
+        self.mins = 0
+        self.secs = 0
 
+        self.settings = Settings(self, **kwargs)
+        self.ui = GameUI(self)
+        
     # None => None
     def main(self):
         self.ui.main()
@@ -175,31 +189,31 @@ class Game:
             # First check for cards to the right of the current location
             # on the same row
             for col in range(curr.col, 13):
-                if self.is_movable(Point(curr.row, col)):
-                    return Point(curr.row, col)
+                if self.is_movable(self.points[curr.row][col]):
+                    return self.points[curr.row][col]
 
             # Then on rows below the current row, cycling back to the row
             # above the current row. Look for the nearest card to the left of
             # the current column and then to the right
             for row in [(curr.row + i) % 4 for i in range(1, 4)]:
                 for col in range(curr.col, -1, -1):
-                    if self.is_movable(Point(row, col)):
-                        return Point(row, col)
+                    if self.is_movable(self.points[row][col]):
+                        return self.points[row][col]
                 for col in range(curr.col + 1, 13):
-                    if self.is_movable(Point(row, col)):
-                        return Point(row, col)
+                    if self.is_movable(self.points[row][col]):
+                        return self.points[row][col]
 
             # And then cards to the left of the current location on the same row
             for col in range(curr.col - 1, -1, -1):
-                if self.is_movable(Point(curr.row, col)):
-                    return Point(curr.row, col)
+                if self.is_movable(self.points[curr.row][col]):
+                    return self.points[curr.row][col]
 
             # This will be called only if there is at least one movable card,
             # so we should never get here
             return None
         
         self.do_deselect()
-        for addr in self.points:
+        for addr in self.all_points:
             self.clear_flags(addr)
 
         correct = self.get_correct_points()
@@ -219,10 +233,8 @@ class Game:
                 else:
                     self.do_select(movable[0])
             else:
-                if self.shuffles == 0:
+                if self.shuffles == self.settings.shuffles:
                     self.do_game_over(False)
-                else:
-                    self.ui.report_movable_zero()
 
     # Point, Point, bool => None
     def move(self, src, dst, is_undo = False):
@@ -230,37 +242,40 @@ class Game:
         self.clear_card(src)
         self.set_card(dst, card)
         if not is_undo:
-            self.undo.append(MoveAction(self, src, dst))
-            self.ui.report_undo_changed(len(self.undo))
+            self.undo_push(MoveAction(self, src, dst))
+            self.moves_incr()
+        else:
+            self.moves_decr()
 
-        self.ui.report_move(src, dst)
         self.refresh(src)
 
     # bool => None
     def shuffle(self, is_undo = False):
         if self.started and not is_undo:
-            self.undo.append(ShuffleAction(self))
-            self.ui.report_undo_changed(len(self.undo))
-        
+            self.undo_push(ShuffleAction(self))
+            
         correct_points = set(self.get_correct_points())
         correct_cards = set([self.get_card(addr) for addr in correct_points])
 
         cards = list(self.cards.keys() - correct_cards)
-        addrs = list(self.points - correct_points)
+        addrs = list(self.all_points - correct_points)
         random.shuffle(cards)
         random.shuffle(addrs)
-        
+
         for addr in addrs:
             self.clear_card(addr)
+        self.empty = []
         for card, addr in zip(cards, addrs):
             if card.face != Face.Ace:
                 self.set_card(addr, card)
+            else:
+                self.empty.append(addr)
 
         self.refresh(self.selected)
 
     # None => None
     def clear_board(self):
-        for addr in self.points:
+        for addr in self.all_points:
             self.clear_card(addr)
 
     # None => None
@@ -274,44 +289,76 @@ class Game:
         if self.settings.shuffles != Settings.Unlimited:
             self.shuffles = self.shuffles + 1
         self.ui.report_shuffles_changed(self.shuffles)
-            
+
+    # None => None
+    def moves_decr(self):
+        self.moves = self.moves - 1
+        self.ui.report_moves_changed(self.moves)
+
+    # None => None
+    def moves_incr(self):
+        self.moves = self.moves + 1
+        self.ui.report_moves_changed(self.moves)
+
+    # UndoAction => None
+    def undo_push(self, action):
+        self.undo.append(action)
+        self.ui.report_undo_changed(len(self.undo))
+
+    # None => UndoAction
+    def undo_pop(self):
+        self.ui.report_undo_changed(len(self.undo) - 1)
+        return self.undo.pop(-1)
+
+    # None => None
+    def do_update_settings(self):
+        self.ui.report_update_settings()
+        if self.started:
+            self.do_game_new()
+    
     # None => None
     def do_game_new(self):
         random.seed()
 
         self.clear_board()
+        self.selected = None
+        self.undo = []
         self.shuffle()
-        self.shuffles = self.settings.shuffles
-        self.started = True
+        self.shuffles = 0
+        self.timer_start()
         self.ui.report_game_new()
 
     # None => None
     def do_game_over(self, win):
-        self.started = False
+        self.timer_stop()
+        self.shuffles = 0
+        self.moves = 0
+        self.undo = []
         self.ui.report_game_over(win)
         
     # None => None
     def do_quit(self):
+        self.timer_stop()
         self.ui.quit()
 
     # Direction => None
     def do_move_selected(self, direction):
         # int, int => Point
         def get_nearest_movable_left(row, col):
-            if self.is_movable(Point(row, col)):
-                return Point(row, col)
+            if self.is_movable(self.points[row][col]):
+                return self.points[row][col]
             for c in range(col - 1, -1, -1):
-                if self.is_movable(Point(row, c)):
-                    return Point(row, c)
+                if self.is_movable(self.points[row][c]):
+                    return self.points[row][c]
             return None
 
         # int, int => Point
         def get_nearest_movable_right(row, col):
-            if self.is_movable(Point(row, col)):
-                return Point(row, col)
+            if self.is_movable(self.points[row][col]):
+                return self.points[row][col]
             for c in range(col + 1, 13):
-                if self.is_movable(Point(row, c)):
-                    return Point(row, c)
+                if self.is_movable(self.points[row][c]):
+                    return self.points[row][c]
             return None
 
         # int, int => Point
@@ -328,7 +375,7 @@ class Game:
             elif right:
                 return right
             return None
-            
+
         # Direction => Point
         def get_next_movable_point(direction):
             rows = [(i + self.selected.row) % 4 for i in range(1, 4)]
@@ -344,26 +391,26 @@ class Game:
                         return addr
             elif direction == Direction.Left:
                 for col in range(self.selected.col - 1, -1, -1):
-                    if self.is_movable(Point(self.selected.row, col)):
-                        return Point(self.selected.row, col)
+                    if self.is_movable(self.points[self.selected.row][col]):
+                        return self.points[self.selected.row][col]
                 for row in reversed(rows):
                     for col in range(12, -1, -1):
-                        if self.is_movable(Point(row, col)):
-                            return Point(row, col)
+                        if self.is_movable(self.points[row][col]):
+                            return self.points[row][col]
                 for col in range(12, self.selected.col + 1, -1):
-                    if self.is_movable(Point(self.selected.row, col)):
-                        return Point(self.selected.row, col)
+                    if self.is_movable(self.points[self.selected.row][col]):
+                        return self.points[self.selected.row][col]
             elif direction == Direction.Right:
                 for col in range(self.selected.col + 1, 13):
-                    if self.is_movable(Point(self.selected.row, col)):
-                        return Point(self.selected.row, col)
+                    if self.is_movable(self.points[self.selected.row][col]):
+                        return self.points[self.selected.row][col]
                 for row in rows:
                     for col in range(0, 13):
-                        if self.is_movable(Point(row, col)):
-                            return Point(row, col)
+                        if self.is_movable(self.points[row][col]):
+                            return self.points[row][col]
                 for col in range(0, self.selected.col):
-                    if self.is_movable(Point(self.selected.row, col)):
-                        return Point(self.selected.row, col)
+                    if self.is_movable(self.points[self.selected.row][col]):
+                        return self.points[self.selected.row][col]
             return None
 
         addr = get_next_movable_point(direction)
@@ -386,11 +433,8 @@ class Game:
     def do_undo(self):
         if self.started:
             if len(self.undo):
-                self.undo.pop(-1).execute()
-                self.ui.report_undo_changed(len(self.undo))
-            else:
-                self.ui.report_undo_nothing()
-        
+                return self.undo_pop().execute()
+            
     # Point => None
     def do_move_card(self, src):
         # None => Point
@@ -398,16 +442,11 @@ class Game:
             card = self.get_card(src)
             if card.face == Face.Two:
                 for i in [(src.row + i + 1) % 4 for i in range(0, 4)]:
-                    if self.is_empty(Point(i, 0)):
-                        return Point(i, 0)
+                    if self.is_empty(self.points[i][0]):
+                        return self.points[i][0]
             else:
-                pred = card.predecessor
-                for curr in self.points:
-                    left = curr.left
-                    if left and self.is_empty(curr) \
-                       and (not self.is_empty(left)) \
-                       and (self.get_card(left).is_predecessor(card)):
-                        return curr
+                return self.cards[card.predecessor].right
+
             # This will only be called if the card is movable
             return None
 
@@ -417,15 +456,17 @@ class Game:
     # None => None
     def do_shuffle(self):
         if self.started:
-            self.shuffle()
-            self.shuffles_decr()
+            if self.settings.is_unlimited_shuffles() \
+               or (self.shuffles < self.settings.shuffles):
+                self.shuffle()
+                self.shuffles_incr()
 
     # None => [Point]
     def get_correct_points(self):
         # int, Suit => int
         def get_correct_length(row, suit):
             for col in range(0, 12):
-                addr = Point(row, col)
+                addr = self.points[row][col]
                 if self.is_empty(addr):
                     return col
                 card = self.get_card(addr)
@@ -435,32 +476,28 @@ class Game:
 
         correct = []
         for row in range(0, 4):
-            addr = Point(row, 0)
+            addr = self.points[row][0]
             if not self.is_empty(addr):
                 suit = self.get_card(addr).suit
                 for col in range(0, get_correct_length(row, suit)):
-                    correct.append(Point(row, col))
+                    correct.append(self.points[row][col])
         return correct
-        
+
     # None => [Point]
     def get_movable_points(self):
-        # None => bool
-        def is_head_empty():
-            for i in range(0, 4):
-                if self.is_empty(Point(i, 0)):
-                    return True
-            return False
-        
         movable = []
-        if is_head_empty():
-            for suit in Suit:
-                movable.append(self.cards[Card(suit, Face.Two)])
-        for curr in self.points:
-            right = curr.right
-            if right and (not self.is_empty(curr)) and self.is_empty(right):
-                succ = self.get_card(curr).successor
+        for addr in self.empty:
+            if addr.col == 0:
+                for suit in Suit:
+                    movable.append(self.cards[Card(suit, Face.Two)])
+
+        for addr in self.empty:
+            left = addr.left
+            if left and not self.is_empty(left):
+                succ = self.get_card(left).successor
                 if succ:
-                    movable.append(self.cards[succ])
+                    movable.append(self.cards[succ])            
+
         return movable
     
     # Point => None
@@ -468,6 +505,7 @@ class Game:
         card = self.get_card(addr)
         if card:
             self.cards[card] = None
+            self.empty.append(addr)
         self.board[addr.row][addr.col].clear()
 
     # None => None
@@ -476,6 +514,8 @@ class Game:
         
     # Point, Card => None
     def set_card(self, addr, card):
+        if addr in self.empty:
+            self.empty.remove(addr)
         self.board[addr.row][addr.col].set_card(card)
         self.cards[card] = addr
 
@@ -510,3 +550,36 @@ class Game:
         if self.selected:
             return self.selected == addr
         return False
+
+    # None => None
+    def timer_start(self):
+        self.hrs = 0
+        self.mins = 0
+        self.secs = 0
+        self.started = True
+        self.timer = Timer(1, self.timer_loop)
+        self.timer.start()
+
+    # None => None
+    def timer_stop(self):
+        self.started = False
+        if self.timer:
+            self.timer.cancel()
+        self.timer = None
+        self.hrs = 0
+        self.mins = 0
+        self.secs = 0
+
+    # None => None
+    def timer_loop(self):
+        self.timer = None
+        while self.started:
+            sec_adj = 1
+            min_adj = int((self.secs + sec_adj) / 60)
+            self.secs = (self.secs + sec_adj) % 60
+            hr_adj = int((self.mins + min_adj) / 60)
+            self.mins = (self.mins + min_adj) % 60
+            self.hrs = self.hrs + hr_adj
+
+            self.ui.report_time_changed(self.hrs, self.mins, self.secs)
+            sleep(1)

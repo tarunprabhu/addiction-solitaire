@@ -79,6 +79,11 @@ class GameUI(AbstractBase):
     def report_cell_correct_changed(self, addr, correct):
         pass
 
+    # int, int, int => None
+    @abstractmethod
+    def report_time_changed(self, hrs, mins, sec):
+        pass
+
     # int => None
     @abstractmethod
     def report_undo_changed(self, undos):
@@ -91,12 +96,12 @@ class GameUI(AbstractBase):
 
     # int => None
     @abstractmethod
-    def report_movable_changed(self, movable):
+    def report_moves_changed(self, moves):
         pass
-
-    # None => None
+    
+    # int => None
     @abstractmethod
-    def report_movable_zero(self):
+    def report_movable_changed(self, movable):
         pass
     
     # bool => None
@@ -107,21 +112,6 @@ class GameUI(AbstractBase):
     # None => None
     @abstractmethod
     def report_game_new(self):
-        pass
-
-    # None => None
-    @abstractmethod
-    def report_undo_nothing(self):
-        pass
-
-    # None => None
-    @abstractmethod
-    def report_move(self, src, dst):
-        pass
-
-    # None => None
-    @abstractmethod
-    def report_shuffle(self):
         pass
 
     # * => None

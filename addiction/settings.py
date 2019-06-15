@@ -72,6 +72,8 @@ class Settings:
     def_shuffles = 3
     def_highlight_movable = True
     def_highlight_correct = True
+    def_show_sidebar = True
+    def_show_buttons = True
 
     # Game,
     def __init__(self, game, **overrides):
@@ -107,6 +109,10 @@ class Settings:
         with open(Settings.filename, 'w') as f:
             json.dump(self.values, f, cls = SettingsEncoder)
 
+    # None => bool
+    def is_unlimited_shuffles(self):
+        return self.shuffles == self.Unlimited
+            
     # None => Gdk.RGBA
     @property
     def color_selected(self):
@@ -152,6 +158,16 @@ class Settings:
     def highlight_correct(self):
         return self.values['highlight_correct']
 
+    # None => bool
+    @property
+    def show_sidebar(self):
+        return self.values['show_sidebar']
+
+    # None => bool
+    @property
+    def show_buttons(self):
+        return self.values['show_buttons']
+    
     # * => None
     @color_selected.setter
     def color_selected(self, val):
@@ -196,3 +212,13 @@ class Settings:
     @highlight_correct.setter
     def highlight_correct(self, val):
         self.values['highlight_correct'] = val
+
+    # bool => None
+    @show_sidebar.setter
+    def show_sidebar(self, val):
+        self.values['show_sidebar'] = val
+
+    # bool => None
+    @show_buttons.setter
+    def show_buttons(self, val):
+        self.values['show_buttons'] = val

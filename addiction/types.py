@@ -175,8 +175,9 @@ class Card:
 
     
 class Point:
-    # int, int
-    def __init__(self, row, col):
+    # [[Point]], int, int
+    def __init__(self, points, row, col):
+        self.points = points
         self.row = row
         self.col = col
 
@@ -184,28 +185,28 @@ class Point:
     @property
     def left(self):
         if self.col > 0:
-            return Point(self.row, self.col - 1)
+            return self.points[self.row][self.col - 1]
         return None
 
     # None => Point
     @property
     def right(self):
         if self.col < 12:
-            return Point(self.row, self.col + 1)
+            return self.points[self.row][self.col + 1]
         return None
 
     # None => Point
     @property
     def above(self):
         if self.row > 0:
-            return Point(self.row - 1, self.col)
+            return self.points[self.row - 1][self.col]
         return None
 
     # None => Point
     @property
     def below(self):
         if self.row < 3:
-            return Point(self.row + 1, self.col)
+            return self.points[self.row + 1][self.col]
         return None
 
     # None => *
