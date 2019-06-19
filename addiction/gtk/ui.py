@@ -259,9 +259,9 @@ class GameGtk(GameUI):
     # int => None
     def report_shuffles_changed(self, shuffles):
         if self.settings.is_unlimited_shuffles():
-            self.lbl_shuffles.set_text('{} (Unlimited)'.format(shuffles))
+            self.lbl_shuffles.set_text('Unlimited')
         else:
-            self.lbl_shuffles.set_text('{} (of {})'.format(shuffles,
+            self.lbl_shuffles.set_text('{} of {}'.format(shuffles,
                                                            self.settings.shuffles))
             self.mitm_shuffle.set_sensitive(shuffles < self.settings.shuffles)
             self.btn_shuffle.set_sensitive(shuffles < self.settings.shuffles)
