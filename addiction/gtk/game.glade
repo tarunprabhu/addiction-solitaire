@@ -2,6 +2,11 @@
 <!-- Generated with glade 3.20.4 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkImage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">media-playback-start</property>
+  </object>
   <object class="GtkAdjustment" id="adj_shuffle">
     <property name="upper">10</property>
     <property name="value">3</property>
@@ -775,6 +780,18 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
+                      <object class="GtkImageMenuItem" id="mitm_move">
+                        <property name="label" translatable="yes">_Move</property>
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="action_move" swapped="no"/>
+                        <accelerator key="Return" signal="activate"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="mitm_undo">
                         <property name="label">gtk-undo</property>
                         <property name="visible">True</property>
@@ -831,7 +848,6 @@
           <packing>
             <property name="left_attach">0</property>
             <property name="top_attach">0</property>
-            <property name="width">2</property>
           </packing>
         </child>
         <child>
@@ -856,27 +872,12 @@
                 <property name="row_homogeneous">True</property>
                 <property name="column_homogeneous">True</property>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_0">
+                  <object class="GtkDrawingArea" id="drw_0_0">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_0">
-                        <property name="width_request">70</property>
-                        <property name="height_request">98</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>
@@ -884,25 +885,12 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_1">
+                  <object class="GtkDrawingArea" id="drw_0_1">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -910,25 +898,77 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_2">
+                  <object class="GtkDrawingArea" id="drw_3_12">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">12</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_3_11">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">11</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_3_10">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">10</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_3_9">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">9</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_3_8">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">8</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_2">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">2</property>
@@ -936,961 +976,103 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_3">
+                  <object class="GtkDrawingArea" id="drw_3_7">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_3">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">3</property>
-                    <property name="top_attach">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_0_4">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_4">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">4</property>
-                    <property name="top_attach">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_0_5">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_5">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">5</property>
-                    <property name="top_attach">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_0_6">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_6">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">6</property>
-                    <property name="top_attach">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_0_7">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_7">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">7</property>
-                    <property name="top_attach">0</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_8">
+                  <object class="GtkDrawingArea" id="drw_3_6">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_8">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
-                    <property name="left_attach">8</property>
-                    <property name="top_attach">0</property>
+                    <property name="left_attach">6</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_9">
+                  <object class="GtkDrawingArea" id="drw_3_5">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_9">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
-                    <property name="left_attach">9</property>
-                    <property name="top_attach">0</property>
+                    <property name="left_attach">5</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_10">
+                  <object class="GtkDrawingArea" id="drw_3_4">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_10">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
-                    <property name="left_attach">10</property>
-                    <property name="top_attach">0</property>
+                    <property name="left_attach">4</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_11">
+                  <object class="GtkDrawingArea" id="drw_3_3">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_11">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
-                    <property name="left_attach">11</property>
-                    <property name="top_attach">0</property>
+                    <property name="left_attach">3</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_0_12">
+                  <object class="GtkDrawingArea" id="drw_3_2">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_0_12">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
-                    <property name="left_attach">12</property>
-                    <property name="top_attach">0</property>
+                    <property name="left_attach">2</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_1_0">
+                  <object class="GtkDrawingArea" id="drw_3_1">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_0">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">0</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="top_attach">1</property>
+                    <property name="top_attach">3</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_1_2">
+                  <object class="GtkDrawingArea" id="drw_3_0">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">2</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_3">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">3</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_4">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_4">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">4</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_5">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_5">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">5</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_6">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_6">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">6</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_7">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_7">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">7</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_8">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_8">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">8</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_9">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_9">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">9</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_10">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_10">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">10</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_11">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_11">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">11</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_1_12">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_1_12">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">12</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_0">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_0">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">0</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">2</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_3">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">3</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_4">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_4">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">4</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_5">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_5">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">5</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_6">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_6">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">6</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_7">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_7">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">7</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_8">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_8">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">8</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_9">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_9">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">9</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_10">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_10">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">10</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_11">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_11">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">11</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_2_12">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_2_12">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">12</property>
-                    <property name="top_attach">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_0">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_0">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">0</property>
@@ -1898,315 +1080,471 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_3_1">
+                  <object class="GtkDrawingArea" id="drw_2_11">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">2</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_3">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">3</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_4">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_4">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">4</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_5">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_5">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">5</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_6">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_6">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">6</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_7">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_7">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">7</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_8">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_8">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">8</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_9">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_9">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">9</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_10">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_10">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">10</property>
-                    <property name="top_attach">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEventBox" id="evt_3_11">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_11">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">11</property>
-                    <property name="top_attach">3</property>
+                    <property name="top_attach">2</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEventBox" id="evt_3_12">
+                  <object class="GtkDrawingArea" id="drw_2_8">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="visible_window">False</property>
-                    <property name="above_child">True</property>
-                    <child>
-                      <object class="GtkFrame" id="frm_3_12">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label_xalign">0</property>
-                        <property name="shadow_type">none</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">8</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_12">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
                   </object>
                   <packing>
                     <property name="left_attach">12</property>
-                    <property name="top_attach">3</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_10">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">10</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_9">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">9</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_7">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">7</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_6">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">6</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_4">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">4</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_5">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">5</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_3">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">3</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_2">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">2</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_1">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_12">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">12</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_2_0">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_11">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">11</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_10">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">10</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_3">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">3</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_4">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">4</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_5">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">5</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_6">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">6</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_7">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">7</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_8">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">8</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_9">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">9</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_10">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">10</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_11">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">11</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_0_12">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">12</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_0">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_1">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_2">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">2</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_3">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">3</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_4">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">4</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_5">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">5</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_6">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">6</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_7">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">7</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_8">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">8</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="drw_1_9">
+                    <property name="width_request">78</property>
+                    <property name="height_request">106</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">9</property>
+                    <property name="top_attach">1</property>
                   </packing>
                 </child>
               </object>
@@ -2221,143 +1559,25 @@
           </packing>
         </child>
         <child>
-          <object class="GtkGrid" id="grd_buttons">
+          <object class="GtkGrid" id="grd_bottom">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="no_show_all">True</property>
-            <property name="halign">center</property>
-            <property name="hexpand">True</property>
+            <property name="margin_left">4</property>
+            <property name="margin_right">4</property>
             <property name="border_width">4</property>
-            <property name="column_spacing">4</property>
+            <property name="column_spacing">8</property>
+            <property name="column_homogeneous">True</property>
             <child>
-              <object class="GtkButton" id="btn_undo">
+              <object class="GtkGrid" id="grd_status">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">True</property>
-                <property name="halign">center</property>
-                <property name="hexpand">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="action_undo" swapped="no"/>
+                <property name="halign">start</property>
+                <property name="row_spacing">4</property>
+                <property name="column_spacing">8</property>
                 <child>
-                  <object class="GtkGrid" id="grd_btn_undo">
+                  <object class="GtkGrid" id="grd_status_0">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
-                    <property name="column_spacing">4</property>
-                    <child>
-                      <object class="GtkImage" id="img_btn_undo">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="icon_name">edit-undo</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_btn_undo">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Undo</property>
-                        <property name="use_underline">True</property>
-                        <property name="track_visited_links">False</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="btn_shuffle">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">True</property>
-                <property name="halign">center</property>
-                <property name="hexpand">False</property>
-                <property name="use_underline">True</property>
-                <signal name="clicked" handler="action_shuffle" swapped="no"/>
-                <child>
-                  <object class="GtkGrid" id="grd_btn_shuffle">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
-                    <property name="column_spacing">4</property>
-                    <child>
-                      <object class="GtkImage" id="img_btn_shuffle">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="icon_name">view-refresh</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_btn_shuffle">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Shu_ffle</property>
-                        <property name="use_underline">True</property>
-                        <property name="track_visited_links">False</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkGrid" id="grd_sidebar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="no_show_all">True</property>
-            <child>
-              <object class="GtkFrame" id="frm_status">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="vexpand">True</property>
-                <property name="border_width">4</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
-                <child>
-                  <object class="GtkGrid" id="grd_status">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="valign">start</property>
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
-                    <property name="row_spacing">4</property>
                     <property name="column_spacing">8</property>
                     <child>
                       <object class="GtkLabel" id="lbl_time_label">
@@ -2379,8 +1599,8 @@
                       <object class="GtkLabel" id="lbl_time">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="width_chars">14</property>
-                        <property name="max_width_chars">14</property>
+                        <property name="width_chars">10</property>
+                        <property name="max_width_chars">10</property>
                         <property name="track_visited_links">False</property>
                         <property name="xalign">0</property>
                       </object>
@@ -2409,8 +1629,45 @@
                       <object class="GtkLabel" id="lbl_shuffles">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="width_chars">14</property>
-                        <property name="max_width_chars">14</property>
+                        <property name="track_visited_links">False</property>
+                        <property name="xalign">0</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkGrid" id="grd_status_1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="column_spacing">8</property>
+                    <child>
+                      <object class="GtkLabel" id="lbl_sequence_label">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Sequence</property>
+                        <property name="track_visited_links">False</property>
+                        <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="lbl_sequence">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="track_visited_links">False</property>
                         <property name="xalign">0</property>
                       </object>
@@ -2424,6 +1681,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Moves</property>
+                        <property name="track_visited_links">False</property>
                         <property name="xalign">0</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
@@ -2431,43 +1689,26 @@
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
-                        <property name="top_attach">2</property>
+                        <property name="top_attach">0</property>
                       </packing>
                     </child>
                     <child>
                       <object class="GtkLabel" id="lbl_moves">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="width_chars">14</property>
-                        <property name="max_width_chars">14</property>
                         <property name="track_visited_links">False</property>
                         <property name="xalign">0</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
-                        <property name="top_attach">2</property>
+                        <property name="top_attach">0</property>
                       </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_movable">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="width_chars">14</property>
-                        <property name="max_width_chars">14</property>
-                        <property name="xalign">0</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                   </object>
-                </child>
-                <child type="label_item">
-                  <placeholder/>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -2476,186 +1717,137 @@
               </packing>
             </child>
             <child>
-              <object class="GtkFrame" id="frm_keys">
+              <object class="GtkGrid" id="grd_buttons">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="vexpand">True</property>
-                <property name="border_width">4</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="column_spacing">4</property>
                 <child>
-                  <object class="GtkGrid" id="grd_keys">
+                  <object class="GtkButton" id="btn_shuffle">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="valign">end</property>
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
-                    <property name="row_spacing">4</property>
-                    <property name="column_spacing">8</property>
+                    <property name="focus_on_click">False</property>
+                    <property name="receives_default">True</property>
+                    <property name="halign">center</property>
+                    <property name="hexpand">False</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="action_shuffle" swapped="no"/>
                     <child>
-                      <object class="GtkLabel" id="lbl_key_move_cursor_label">
+                      <object class="GtkGrid" id="grd_btn_shuffle">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Arrow
-Keys</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0.10000000149011612</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
+                        <property name="column_spacing">4</property>
+                        <child>
+                          <object class="GtkImage" id="img_btn_shuffle">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="icon_name">view-refresh</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="lbl_btn_shuffle">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Shu_ffle</property>
+                            <property name="use_underline">True</property>
+                            <property name="track_visited_links">False</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
                       </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_move_card_label">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">&lt;Enter&gt;</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0.10000000149011612</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_shuffle_label">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">r</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0.10000000149011612</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_new_label">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">n</property>
-                        <property name="xalign">0.10000000149011612</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_quit_label">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">&lt;Esc&gt;</property>
-                        <property name="xalign">0.10000000149011612</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">4</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_move_cursor">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Change
-selection</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_move_card">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Move
-selection</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_shuffle">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Shuffle cards</property>
-                        <property name="xalign">0</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_new">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">New game</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="lbl_key_quit">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Quit game</property>
-                        <property name="track_visited_links">False</property>
-                        <property name="xalign">0</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">4</property>
-                      </packing>
                     </child>
                   </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
                 </child>
-                <child type="label_item">
-                  <placeholder/>
+                <child>
+                  <object class="GtkButton" id="btn_undo">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="focus_on_click">False</property>
+                    <property name="receives_default">True</property>
+                    <property name="halign">center</property>
+                    <property name="hexpand">False</property>
+                    <property name="use_underline">True</property>
+                    <signal name="clicked" handler="action_undo" swapped="no"/>
+                    <child>
+                      <object class="GtkGrid" id="grd_btn_undo">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
+                        <property name="column_spacing">4</property>
+                        <child>
+                          <object class="GtkImage" id="img_btn_undo">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="icon_name">edit-undo</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="lbl_btn_undo">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">_Undo</property>
+                            <property name="use_underline">True</property>
+                            <property name="track_visited_links">False</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lbl_status">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="track_visited_links">False</property>
+                <property name="xalign">0.94999998807907104</property>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">0</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">1</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
           </packing>
-        </child>
-        <child>
-          <placeholder/>
         </child>
       </object>
     </child>

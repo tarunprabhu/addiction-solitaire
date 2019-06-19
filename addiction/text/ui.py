@@ -63,13 +63,11 @@ class Cell:
             attrname.append('empty')
 
         return ''.join(attrname)
-        # self.attr_text.set_attr_map({ None: ''.join(attrname) })
         
     # Card => None
     def set_card(self, card):
         self.card = card
         if card:
-            # self.set_card_attr(CellFlags.Normal)
             self.text.set_text(str(card))
         else:
             self.text.set_text('  ')
@@ -109,8 +107,10 @@ class GameText(GameUI):
 
         self.palette = [
             ('default', '', ''),
+            ('title', 'bold', ''),
             ('win', 'white,bold', 'dark green'),
             ('lose', 'white,bold', 'dark red'),
+            ('dialog', 'bold', ''),
             ('card_empty', '', ''),
             ('card_red', 'light red,bold', ''),
             ('card_black', 'bold', ''),
@@ -128,33 +128,80 @@ class GameText(GameUI):
             self.cells.append([])
             for j in range(0, 13):
                 self.cells[i].append(Cell(self.game, i, j))
-                
         cols = []
         for i in range(0, 4):
             cols.append(urwid.Columns([cell.contents for cell in self.cells[i]],
                                       1, min_width = 2))
         rows = urwid.Pile(cols)
-
-        self.header = urwid.Text('Addiction Solitaire', align='center')
-        self.footer = urwid.Text("Press 'n' to start new game", align='center')
         self.board = urwid.Filler(rows)
-        self.frame = urwid.Frame(self.board, self.header, self.footer)
+
+        header = urwid.Text(('title', 'Addiction Solitaire'), align = 'center')
+
+        lbl_time = urwid.Text(('bold', 'Time'))
+        lbl_shuffles = urwid.Text(('bold', 'Shuffles'))
+        lbl_moves = urwid.Text(('bold', 'Moves'))
+        lbl_movable = urwid.Text(('bold', ''))
+
+        self.lbl_time = urwid.Text('')
+        self.lbl_shuffles = urwid.Text('')
+        self.lbl_moves = urwid.Text('')
+        self.lbl_movable = urwid.Text('')
+
+        key_arrow = urwid.Text(('bold', 'Arrow\nkeys'))
+        key_enter = urwid.Text(('bold', '<Enter>'))
+        
+        key_arrow_do = urwid.Text('Change\nselection')
+        key_enter_do = urwid.Text('Move\nselected')
+        
+        key_shuffle = urwid.Text(('bold', 'r'))
+        key_undo = urwid.Text(('bold', 'u'))
+        key_new = urwid.Text(('bold', 'n'))
+        key_quit = urwid.Text(('bold', '<Esc>'))
+        
+        key_shuffle_do = urwid.Text('Shuffle')
+        key_undo_do = urwid.Text('Undo')
+        key_new_do = urwid.Text('New game')
+        key_quit_do = urwid.Text('Quit game')
+
+        self.lbl_message = urwid.Text('', align = 'center')
+        
+        # footer = urwid.Pile(
+        #     self.lbl_message,
+        #     urwid.Columns(
+        #         urwid.Pile([(1, lbl_time),
+        #                     (1, lbl_shuffles),
+        #                     (1, lbl_moves),
+        #                     (1, lbl_movable)]),
+        #         urwid.Pile([(1, self.lbl_time),
+        #                     (1, self.lbl_shuffles),
+        #                     (1, self.lbl_moves),
+        #                     (1, self.lbl_movable)])))
+        
+        # footer = urwid.BoxAdapter(urwid.Frame(self.lbl_time, self.lbl_message),
+        #                           'bottom')
+        # footer = urwid.BoxAdapter(urwid.Frame(
+        #     urwid.Filler(
+        #         urwid.Pile(
+        #     self.lbl_message), 'bottom')
+        
+        self.frame = urwid.Frame(self.board, header, self.lbl_message)
 
         self.blocked = Blocked.Clear
-        self.msgs = []
-        self.msg_default = '. '.join(['Arrow keys to change selection',
-                                      '<Enter> to moves selected card',
-                                      '<F5> to reshuffle'])
         
     # * => *
     def main(self):
-        fill = urwid.BoxAdapter(self.frame, 'top')
+        # fill = urwid.BoxAdapter(self.frame)
         loop = urwid.MainLoop(self.frame,
                               self.palette,
-                              unhandled_input = self.action_key_press)
+                              unhandled_input = self.action_key_press,
+                              handle_mouse = False)
         loop.screen.set_terminal_properties(colors = 16)
+        loop.set_alarm_in(5, self.tick, 0)
         loop.run()
 
+    def tick(self, loop, secs):
+        pass
+        
     # * => *
     def quit(self):
         raise urwid.ExitMainLoop()
@@ -177,49 +224,51 @@ class GameText(GameUI):
     
     # str => None
     def action_key_press(self, key):
-        if self.blocked == Blocked.Clear:
-            if key in ['up']:
-                if self.game.selected:
-                    self.game.do_move_selected(Direction.Up)
-            elif key in ['down']:
-                if self.game.selected:
-                    self.game.do_move_selected(Direction.Down)
-            elif key in ['left']:
-                if self.game.selected:
-                    self.game.do_move_selected(Direction.Left)
-            elif key in ['right']:
-                if self.game.selected:
-                    self.game.do_move_selected(Direction.Right)
-            elif key in ['enter']:
-                if self.game.selected:
-                    self.game.do_move_card(self.game.selected)
-            elif key in ['n']:
-                if self.game.started:
-                    self.blocked = Blocked.New
-                    self.msgs.append(self.footer.get_text()[0])
-                    self.footer.set_text('Really quit game [y/n]: ')
-                else:
-                    self.action_new()
-            elif key in ['q', 'Esc']:
-                if self.game.started:
-                    self.blocked = Blocked.Quit
-                    self.msgs.append(self.footer.get_text()[0])
-                    self.footer.set_text('Really quit game [y/n]: ')
-                else:
-                    self.action_quit()
-            elif key in ['z', 'u']:
-                self.action_undo()
-            elif key in ['r', 'f5']:
-                self.action_shuffle()
-        else:
-            if key in ['y']:
-                if self.blocked == Blocked.New:
-                    self.action_new()
-                elif self.blocked == Blocked.Quit:
-                    self.action_quit()
-            elif key in ['n']:
-                self.blocked = Blocked.Clear
-                self.footer.set_text(('default', self.msgs.pop(-1)))
+        with self.game.lock:
+            if self.blocked == Blocked.Clear:
+                if key in ['up']:
+                    if self.game.selected:
+                        self.game.do_move_selected(Direction.Up)
+                elif key in ['down']:
+                    if self.game.selected:
+                        self.game.do_move_selected(Direction.Down)
+                elif key in ['left']:
+                    if self.game.selected:
+                        self.game.do_move_selected(Direction.Left)
+                elif key in ['right']:
+                    if self.game.selected:
+                        self.game.do_move_selected(Direction.Right)
+                elif key in ['enter']:
+                    if self.game.selected:
+                        self.game.do_move_card(self.game.selected)
+                elif key in ['n']:
+                    if self.game.is_started():
+                        self.blocked = Blocked.New
+                        self.lbl_message.set_text(('bold',
+                                                   'Really quit game [y/n]: '))
+                    else:
+                        self.action_new()
+                elif key in ['esc']:
+                    if self.game.is_started():
+                        self.blocked = Blocked.Quit
+                        self.lbl_message.set_text(('bold',
+                                                   'Really quit game [y/n]: '))
+                    else:
+                        self.action_quit()
+                elif key in ['u']:
+                    self.action_undo()
+                elif key in ['r']:
+                    self.action_shuffle()
+            else:
+                if key in ['y']:
+                    if self.blocked == Blocked.New:
+                        self.action_new()
+                    elif self.blocked == Blocked.Quit:
+                        self.action_quit()
+                elif key in ['n']:
+                    self.blocked = Blocked.Clear
+                    self.lbl_message.set_text('')
+        return True
 
     # * => None
     def action_button_press(self, *args):
@@ -233,82 +282,46 @@ class GameText(GameUI):
     def report_cell_card_changed(self, addr, card):
         self.cells[addr.row][addr.col].set_card(card)
 
-    # Point, bool => None
-    def report_cell_movable_changed(self, addr, movable):
+    # Point, Flags => None
+    def report_cell_flags_changed(self, addr, flags):
         cell = self.cells[addr.row][addr.col]
-        if movable:
+        if self.game.is_selected(addr):
+            cell.set_selected()
+        elif self.game.is_movable(addr):
             cell.set_movable()
         elif self.game.is_correct(addr):
             cell.set_correct()
         else:
             cell.set_normal()
 
-    # Point, bool => None
-    def report_cell_correct_changed(self, addr, correct):
-        cell = self.cells[addr.row][addr.col]
-        if correct:
-            cell.set_correct()
-        elif self.game.is_selected(addr):
-            cell.set_selected()
-        elif self.game.is_movable(addr):
-            cell.set_movable()
-        else:
-            cell.set_normal()
-        
-    # Point, bool => None
-    def report_cell_selected_changed(self, addr, selected):
-        cell = self.cells[addr.row][addr.col]
-        if selected:
-            cell.set_selected()
-        elif self.game.is_movable(addr):
-            cell.set_movable()
-        elif self.game.is_correct(addr):
-            cell.set_correct()
-        else:
-            cell.set_normal()
+    # bool => None
+    def report_selection_changed(self, selected):
+        pass
             
     # int => None
     def report_shuffles_changed(self, shuffles):
-        self.footer.set_text(('default', self.msg_default))
+        self.lbl_shuffles.set_text(str(shuffles))
 
+    # int => None
+    def report_moves_changed(self, moves):
+        self.lbl_moves.set_text(str(moves))
+        
     # int => None
     def report_movable_changed(self, movable):
-        if movable:
-            self.footer.set_text(('default', self.msg_default))
+        self.lbl_movable.set_text('({} available)'.format(movable))
 
     # int => None
-    def report_movable_zero(self):
-        msg = []
-        msg.append('No moves possible.')
-        msg.append('<F5> to reshuffle')
-        if self.settings.shuffles == self.settings.Unlimited:
-            msg.append('(Unlimited shuffles)')
-        elif self.game.shuffles == 1:
-            msg.append('(1 shuffle remaining)')
-        elif self.game.shuffles > 1:
-            msg.append('({} shuffles remaining)'.format(self.game.shuffles))
-        self.footer.set_text(('default', ' '.join(msg)))
-            
+    def report_correct_changed(self, correct):
+        pass
+        
     # bool => None
     def report_game_over(self, win):
         if win:
-            self.footer.set_text(('win', ' You win! '))
+            self.lbl_message.set_text(('win', ' You win! '))
         else:
-            self.footer.set_text(('lose', ' Game over '))
+            self.lbl_message.set_text(('lose', ' Game over '))
 
     # None => None
     def report_game_new(self):
-        pass
-
-    # None => None
-    def report_undo_nothing(self):
-        self.footer.set_text('Nothing to undo')
-
-    # None => None
-    def report_move(self, src, dst):
-        pass
-
-    # None => None
-    def report_shuffle(self):
-        pass
+        self.lbl_message.set_text('')
     

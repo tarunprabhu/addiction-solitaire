@@ -22,9 +22,10 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
 
 import random
+import sys
 from abc import ABC as AbstractBase, abstractmethod
 from copy import deepcopy
-from threading import Timer
+from threading import Lock, Timer
 from time import sleep
 
 from .types import Card, Face, Suit, Direction, Point, CellFlags
@@ -52,7 +53,7 @@ class MoveAction(UndoAction):
     # None => None
     def execute(self):
         self.game.move(self.dst, self.src, True)
-        
+
 
 class ShuffleAction(UndoAction):
     # Game
@@ -90,9 +91,8 @@ class Cell:
     # None => None
     def clear_flags(self):
         self._flags = CellFlags.Normal
-        self.game.ui.report_cell_movable_changed(self.addr, False)
-        self.game.ui.report_cell_correct_changed(self.addr, False)
-        
+        self.game.ui.report_cell_flags_changed(self.addr, self.flags)
+
     # None => Card
     @property
     def card(self):
@@ -101,23 +101,23 @@ class Cell:
     # None => bool
     @property
     def movable(self):
-        return self._flags & CellFlags.Movable
+        return bool(self._flags & CellFlags.Movable)
 
     # None => bool
     @property
     def correct(self):
-        return self._flags & CellFlags.Correct 
+        return bool(self._flags & CellFlags.Correct)
 
     # None => bool
     @property
     def selected(self):
-        return self._flags & CellFlags.Selected
-    
+        return bool(self._flags & CellFlags.Selected)
+
     # None => CellFlags
     @property
     def flags(self):
         return self._flags
-    
+
     # Card => None
     def set_card(self, val):
         if (not self.card) or (self.card != val):
@@ -125,27 +125,40 @@ class Cell:
             self.game.ui.report_cell_card_changed(self.addr, self.card)
 
     # None => None
+    def set_selected(self):
+        if not self.selected:
+            self._flags = self._flags | CellFlags.Selected
+            self.game.ui.report_cell_flags_changed(self.addr, self.flags)
+            
+    # None => None
     def set_movable(self):
         if not self.movable:
-            self._flags = self._flags | CellFlags.Movable 
-            self.game.ui.report_cell_movable_changed(self.addr, True)
+            self._flags = self._flags | CellFlags.Movable
+            self.game.ui.report_cell_flags_changed(self.addr, self.flags)
 
     # None => None
     def set_correct(self):
         if not self.correct:
             self._flags = self._flags | CellFlags.Correct
-            self.game.ui.report_cell_correct_changed(self.addr, True)
-            
+            self.game.ui.report_cell_flags_changed(self.addr, self.flags)
 
+    # None => None
+    def reset_selected(self):
+        if self.selected:
+            self._flags = self._flags & ~CellFlags.Selected
+            self.game.ui.report_cell_flags_changed(self.addr, self.flags)
+            
 class Game:
-    # class
-    def __init__(self, GameUI, **kwargs):
+    # class, bool
+    def __init__(self, GameUI, debug, **kwargs):
+        self.debug = debug
+
         self.points = []
         for i in range(0, 4):
             self.points.append([])
             for j in range(0, 13):
                 self.points[i].append(Point(self.points, i, j))
-                
+
         self.all_points = set()
         for i in range(0, 4):
             for j in range(0, 13):
@@ -162,20 +175,22 @@ class Game:
             for face in Face:
                 self.cards[Card(suit, face)] = None
 
-        self.started = False
+        self.lock = Lock()
         self.timer = None
         self.selected = None
         self.shuffles = 0
         self.moves = 0
         self.undo = []
         self.empty = []
-        self.hrs = 0
-        self.mins = 0
-        self.secs = 0
 
         self.settings = Settings(self, **kwargs)
         self.ui = GameUI(self)
-        
+
+    # * => None
+    def dbg(self, *args):
+        if self.debug:
+            print(*args, file = sys.stderr)
+
     # None => None
     def main(self):
         self.ui.main()
@@ -211,20 +226,24 @@ class Game:
             # This will be called only if there is at least one movable card,
             # so we should never get here
             return None
-        
+
         self.do_deselect()
         for addr in self.all_points:
             self.clear_flags(addr)
 
         correct = self.get_correct_points()
+        self.ui.report_correct_changed(len(correct))
         for addr in correct:
             self.set_correct(addr)
 
         if len(correct) == 48:
             self.do_game_over(True)
-        else:    
+        else:
             movable = self.get_movable_points()
             self.ui.report_movable_changed(len(movable))
+            self.dbg('refresh')
+            self.dbg('  movable: ', *movable)
+            self.dbg('  empty: ', *self.empty)
             if movable:
                 for addr in movable:
                     self.set_movable(addr)
@@ -232,12 +251,15 @@ class Game:
                     self.do_select(get_nearest_movable())
                 else:
                     self.do_select(movable[0])
+                self.dbg('  selected:', self.selected)
             else:
-                if self.shuffles == self.settings.shuffles:
+                if self.shuffles >= self.settings.shuffles:
                     self.do_game_over(False)
 
     # Point, Point, bool => None
     def move(self, src, dst, is_undo = False):
+        self.dbg('move card')
+        self.dbg(' ', self.get_card(src), ':', src, '=>', dst)
         card = self.get_card(src)
         self.clear_card(src)
         self.set_card(dst, card)
@@ -251,9 +273,9 @@ class Game:
 
     # bool => None
     def shuffle(self, is_undo = False):
-        if self.started and not is_undo:
+        if self.is_started() and not is_undo:
             self.undo_push(ShuffleAction(self))
-            
+
         correct_points = set(self.get_correct_points())
         correct_cards = set([self.get_card(addr) for addr in correct_points])
 
@@ -262,6 +284,9 @@ class Game:
         random.shuffle(cards)
         random.shuffle(addrs)
 
+        self.dbg('shuffle')
+        self.dbg('  points:', *correct_points)
+        self.dbg('  cards:', *correct_cards)
         for addr in addrs:
             self.clear_card(addr)
         self.empty = []
@@ -270,6 +295,7 @@ class Game:
                 self.set_card(addr, card)
             else:
                 self.empty.append(addr)
+        self.dbg('  empty:', *self.empty)
 
         self.refresh(self.selected)
 
@@ -312,10 +338,12 @@ class Game:
 
     # None => None
     def do_update_settings(self):
-        self.ui.report_update_settings()
-        if self.started:
-            self.do_game_new()
-    
+        if self.is_started():
+            if self.selected:
+                self.refresh(self.selected)
+            else:
+                self.refresh(self.points[0][0])
+
     # None => None
     def do_game_new(self):
         random.seed()
@@ -335,7 +363,7 @@ class Game:
         self.moves = 0
         self.undo = []
         self.ui.report_game_over(win)
-        
+
     # None => None
     def do_quit(self):
         self.timer_stop()
@@ -414,27 +442,33 @@ class Game:
             return None
 
         addr = get_next_movable_point(direction)
+        self.dbg('change selected')
+        self.dbg('  ', direction, self.selected, '=>', addr)
         if addr:
             self.do_select(addr)
 
     # Point => None
     def do_select(self, addr):
         self.do_deselect()
+        self.dbg('select:', addr)
+        self.set_selected(addr, True)
         self.selected = addr
-        self.ui.report_cell_selected_changed(self.selected, True)
+        self.ui.report_selection_changed(self.selected is not None)
 
     # Point => None
     def do_deselect(self):
         if self.selected:
-            self.ui.report_cell_selected_changed(self.selected, False)
+            self.dbg('unselect:', self.selected)
+            self.set_selected(self.selected, False)
         self.selected = None
+        self.ui.report_selection_changed(False)
 
     # None => None
     def do_undo(self):
-        if self.started:
+        if self.is_started():
             if len(self.undo):
                 return self.undo_pop().execute()
-            
+
     # Point => None
     def do_move_card(self, src):
         # None => Point
@@ -452,10 +486,10 @@ class Game:
 
         dst = get_dest()
         self.move(src, dst)
-        
+
     # None => None
     def do_shuffle(self):
-        if self.started:
+        if self.is_started():
             if self.settings.is_unlimited_shuffles() \
                or (self.shuffles < self.settings.shuffles):
                 self.shuffle()
@@ -490,16 +524,17 @@ class Game:
             if addr.col == 0:
                 for suit in Suit:
                     movable.append(self.cards[Card(suit, Face.Two)])
+                break
 
         for addr in self.empty:
             left = addr.left
             if left and not self.is_empty(left):
                 succ = self.get_card(left).successor
                 if succ:
-                    movable.append(self.cards[succ])            
+                    movable.append(self.cards[succ])
 
         return movable
-    
+
     # Point => None
     def clear_card(self, addr):
         card = self.get_card(addr)
@@ -511,7 +546,7 @@ class Game:
     # None => None
     def clear_flags(self, addr):
         self.board[addr.row][addr.col].clear_flags()
-        
+
     # Point, Card => None
     def set_card(self, addr, card):
         if addr in self.empty:
@@ -520,13 +555,22 @@ class Game:
         self.cards[card] = addr
 
     # Point, bool => None
-    def set_movable(self, addr):
-        self.board[addr.row][addr.col].set_movable()
+    def set_movable(self, addr, val = True):
+        if val:
+            self.board[addr.row][addr.col].set_movable()
 
     # Point, bool => None
-    def set_correct(self, addr):
-        self.board[addr.row][addr.col].set_correct()
+    def set_correct(self, addr, val = True):
+        if val:
+            self.board[addr.row][addr.col].set_correct()
 
+    # Point, bool => None
+    def set_selected(self, addr, val = True):
+        if val:
+            self.board[addr.row][addr.col].set_selected()
+        else:
+            self.board[addr.row][addr.col].reset_selected()
+        
     # Point => Card
     def get_card(self, addr):
         if self.board[addr.row][addr.col] is None:
@@ -542,44 +586,32 @@ class Game:
         return self.board[addr.row][addr.col].correct
 
     # Point => bool
+    def is_selected(self, addr):
+        return self.board[addr.row][addr.col].selected
+
+    # Point => bool
     def is_empty(self, addr):
         return self.get_card(addr) is None
-    
-    # Point => bool
-    def is_selected(self, addr):
-        if self.selected:
-            return self.selected == addr
-        return False
+
+    # None => bool
+    def is_started(self):
+        return self.timer is not None
 
     # None => None
     def timer_start(self):
-        self.hrs = 0
-        self.mins = 0
-        self.secs = 0
-        self.started = True
-        self.timer = Timer(1, self.timer_loop)
-        self.timer.start()
+        self.timer_tick(True)
 
     # None => None
     def timer_stop(self):
-        self.started = False
         if self.timer:
             self.timer.cancel()
         self.timer = None
-        self.hrs = 0
-        self.mins = 0
-        self.secs = 0
 
-    # None => None
-    def timer_loop(self):
-        self.timer = None
-        while self.started:
-            sec_adj = 1
-            min_adj = int((self.secs + sec_adj) / 60)
-            self.secs = (self.secs + sec_adj) % 60
-            hr_adj = int((self.mins + min_adj) / 60)
-            self.mins = (self.mins + min_adj) % 60
-            self.hrs = self.hrs + hr_adj
-
-            self.ui.report_time_changed(self.hrs, self.mins, self.secs)
-            sleep(1)
+    # bool => None
+    def timer_tick(self, start = False):
+        if start:
+            self.ticks = 0
+        else:
+            self.ticks = self.ticks + 1
+        self.timer = Timer(1, self.timer_tick)
+        self.timer.start()

@@ -247,3 +247,27 @@ class Color:
         self.green = green
         self.blue = blue
         self.alpha = alpha
+
+    # None => float
+    @property
+    def red_f(self):
+        return self.red / 255
+
+    # None => float
+    @property
+    def green_f(self):
+        return self.green / 255
+
+    # None => float
+    @property
+    def blue_f(self):
+        return self.blue / 255
+    
+    # None => str
+    def __str__(self):
+        return 'Color({}, {}, {}, {})'.format(self.red, self.green, self.blue,
+                                              self.alpha)
+
+    # None => str
+    def __repr__(self):
+        return str(self)

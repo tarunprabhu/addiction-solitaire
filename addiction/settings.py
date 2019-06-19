@@ -66,14 +66,12 @@ class Settings:
     def_color_selected = Color(164, 0, 0)
     def_color_movable = Color(252, 175, 62)
     def_color_correct = Color(115, 210, 22)
-    def_color_normal = Color(230, 230, 230)
+    def_color_normal = Color(210, 210, 210)
     def_border = 4
-    def_radius = 8
+    def_radius = 4
     def_shuffles = 3
     def_highlight_movable = True
     def_highlight_correct = True
-    def_show_sidebar = True
-    def_show_buttons = True
 
     # Game,
     def __init__(self, game, **overrides):
@@ -157,16 +155,6 @@ class Settings:
     @property
     def highlight_correct(self):
         return self.values['highlight_correct']
-
-    # None => bool
-    @property
-    def show_sidebar(self):
-        return self.values['show_sidebar']
-
-    # None => bool
-    @property
-    def show_buttons(self):
-        return self.values['show_buttons']
     
     # * => None
     @color_selected.setter
@@ -212,13 +200,3 @@ class Settings:
     @highlight_correct.setter
     def highlight_correct(self, val):
         self.values['highlight_correct'] = val
-
-    # bool => None
-    @show_sidebar.setter
-    def show_sidebar(self, val):
-        self.values['show_sidebar'] = val
-
-    # bool => None
-    @show_buttons.setter
-    def show_buttons(self, val):
-        self.values['show_buttons'] = val

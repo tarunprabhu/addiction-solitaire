@@ -18,6 +18,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
+import faulthandler
+import signal
+import sys
+import threading
+import traceback
 from enum import Enum, unique, auto
 
 from addiction.game import Game
@@ -34,13 +39,21 @@ class Mode(Enum):
     Qt = auto()
     Text = auto()
 
-# os.path => 
-def load_settings_from_file(filename):
-    pass
+# int, stack.frame, Game =>
+def signal_trap_sigint(signal, frame, game):
+    print('Threads:', file = sys.stderr)
+    for t in threading.enumerate():
+        print('  {}: {} [{}]'.format(t.name, t.ident, hex(t.ident)),
+              file = sys.stderr)
+    print(file = sys.stderr)
+    faulthandler.dump_traceback(file = sys.stderr)
+    game.do_quit()
     
 # None => int
 def main():
     parser = argparse.ArgumentParser('Addiction solitaire game')
+    parser.add_argument('-d', '--debug', default = False, action = 'store_true',
+                        help = 'Print debug messages')
     parser.set_defaults(mode = Mode.Gtk)
 
     ui = parser.add_subparsers()
@@ -68,14 +81,20 @@ def main():
 
     game = None
     if args.mode == Mode.Gtk:
-        game = Game(GameGtk)
+        game = Game(GameGtk, args.debug)
     elif args.mode == Mode.Qt:
-        game = Game(GameQt)
+        game = Game(GameQt, args.debug)
     elif args.mode == Mode.Text:
         game = Game(GameText,
+                    False,
                     shuffles = args.shuffles,
                     highlight_movable = args.highlight_movable,
                     highlight_correct = args.highlight_correct)
+
+    if args.debug:
+        signal.signal(signal.SIGINT,
+                      lambda sig, frm: signal_trap_sigint(sig, frm, game))
+
     game.main()
     
     return 0

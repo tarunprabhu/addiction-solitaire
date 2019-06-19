@@ -41,6 +41,9 @@ class CSS:
                  or isinstance(val, str) \
                  or isinstance(val, float):
                 css.append('{}: {}'.format(key, str(val)))
+            else:
+                raise RuntimeError(
+                    'Unsupported CSS property type: {}'.format(type(val)))
 
         self.css = '{} {{\n{}}}'.format(selector,
                                         ';\n  '.join(css))

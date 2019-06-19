@@ -64,24 +64,14 @@ class GameUI(AbstractBase):
     def report_cell_card_changed(self, addr, card):
         pass
 
-    # Point, bool => None
+    # Point, IntFlag => None
     @abstractmethod
-    def report_cell_movable_changed(self, addr, movable):
+    def report_cell_flags_changed(self, addr, flags):
         pass
 
-    # Point, bool => None
+    # bool => None
     @abstractmethod
-    def report_cell_selected_changed(self, addr, selected):
-        pass
-
-    # Point, bool => None
-    @abstractmethod
-    def report_cell_correct_changed(self, addr, correct):
-        pass
-
-    # int, int, int => None
-    @abstractmethod
-    def report_time_changed(self, hrs, mins, sec):
+    def report_selection_changed(self, selected):
         pass
 
     # int => None
@@ -97,6 +87,11 @@ class GameUI(AbstractBase):
     # int => None
     @abstractmethod
     def report_moves_changed(self, moves):
+        pass
+
+    # int => None
+    @abstractmethod
+    def report_correct_changed(self, correct):
         pass
     
     # int => None

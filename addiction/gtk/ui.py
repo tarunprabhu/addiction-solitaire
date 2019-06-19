@@ -22,6 +22,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
 from gi.repository.GdkPixbuf import Pixbuf as GdkPixbuf
 
+import math
 import os
 
 from .css import CSS
@@ -40,6 +41,7 @@ class GameGtk(GameUI):
     def __init__(self, game):
         super().__init__(game)
 
+        self.timer = None
         self.board = []
         for _ in range(0, 4):
             self.board.append([None] * 13)
@@ -53,61 +55,69 @@ class GameGtk(GameUI):
         self.builder.connect_signals(self)
 
         self.win_main = self.builder.get_object('win_main')
-        self.grd_board = self.builder.get_object('grd_board')
-        self.dlg_about = self.builder.get_object('dlg_about')
-        self.dlg_quit = self.builder.get_object('dlg_quit')
-        self.dlg_result = self.builder.get_object('dlg_result')
         self.lbl_time = self.builder.get_object('lbl_time')
-        self.lbl_moves = self.builder.get_object('lbl_moves')
         self.lbl_shuffles = self.builder.get_object('lbl_shuffles')
-        self.lbl_movable = self.builder.get_object('lbl_movable')
+        self.lbl_moves = self.builder.get_object('lbl_moves')
+        self.lbl_sequence = self.builder.get_object('lbl_sequence')
+        self.lbl_status = self.builder.get_object('lbl_status')
+        self.lbl_result = self.builder.get_object('lbl_result')
+
+        self.mitm_move = self.builder.get_object('mitm_move')
         self.mitm_undo = self.builder.get_object('mitm_undo')
         self.mitm_shuffle = self.builder.get_object('mitm_shuffle')
         self.btn_undo = self.builder.get_object('btn_undo')
         self.btn_shuffle = self.builder.get_object('btn_shuffle')
-        self.lbl_result = self.builder.get_object('lbl_result')
-        self.grd_sidebar = self.builder.get_object('grd_sidebar')
-        self.grd_buttons = self.builder.get_object('grd_buttons')
 
+        self.dlg_about = self.builder.get_object('dlg_about')
+        self.dlg_quit = self.builder.get_object('dlg_quit')
+        self.dlg_result = self.builder.get_object('dlg_result')
+        
         self.win_main.show_all()
         for i in range(0, 4):
             for j in range(0, 13):
-                evt = self.builder.get_object('evt_{}_{}'.format(i, j))
-                frm = self.builder.get_object('frm_{}_{}'.format(i, j))
-                evt.connect('button-press-event',
+                drw = self.builder.get_object('drw_{}_{}'.format(i, j))
+                drw.connect('button-press-event',
                             self.action_button_press,
                             self.game.points[i][j])
-                self.board[i][j] = frm
+                drw.connect('draw', self.draw_card, self.game.points[i][j])
+
+                self.board[i][j] = drw
 
         cards_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'cards')
-        card_width = self.board[0][0].get_allocation().width
-        card_height = self.board[0][0].get_allocation().height
+        allocation = self.board[0][0].get_allocation()
+        self.card_width = allocation.width - 2 * self.settings.border
+        self.card_height = allocation.height - 2 * self.settings.border
         self.cards = dict()
         for s in Suit:
             self.cards[s] = dict()
             for c in Face:
                 filename = os.path.join(cards_dir, s.dirname, c.filename)
                 self.cards[s][c] = \
-                    Gtk.Image.new_from_pixbuf(
-                        GdkPixbuf.new_from_file_at_scale(filename,
-                                                         card_width,
-                                                         card_height,
-                                                         False))
+                    GdkPixbuf.new_from_file_at_scale(filename,
+                                                     self.card_width,
+                                                     self.card_height,
+                                                     False)
+        self.css_win = CSS('label',
+                           {'font-weight': 'bold',
+                            'color': 'green'}).get_provider()
+        self.css_lose = CSS('label',
+                            {'font-weight': 'bold',
+                             'color': 'red'}).get_provider()
+        self.css_stuck = CSS('label',
+                             {'font-weight': 'bold',
+                              'color': 'orange'}).get_provider()
 
-        self.css_border_normal = None
-        self.css_border_selected = None
-        self.css_border_movable = None
-        self.css_border_correct = None
-        self.report_update_settings()
-                
     # None => None
     def main(self):
         Gtk.main()
 
     # None => None
     def quit(self):
+        if self.timer:
+            GLib.source_remove(self.timer)
+            self.timer = None
         Gtk.main_quit()
 
     # * => None
@@ -116,7 +126,7 @@ class GameGtk(GameUI):
 
     # * => None
     def action_new(self, *args):
-        if self.game.started:
+        if self.game.is_started():
             response = self.dlg_quit.run()
             self.dlg_quit.hide()
             if response in [Gtk.ResponseType.YES]:
@@ -126,7 +136,7 @@ class GameGtk(GameUI):
 
     # * => None
     def action_quit(self, *args):
-        if self.game.started:
+        if self.game.is_started():
             response = self.dlg_quit.run()
             self.dlg_quit.hide()
             if response in [Gtk.ResponseType.YES]:
@@ -142,106 +152,104 @@ class GameGtk(GameUI):
     def action_preferences(self, mitm_game_preferences):
         SettingsGtk(self.game).run()
 
+    # * => None
+    def action_move(self, mitm_actions_move):
+        if self.game.selected:
+            self.game.do_move_card(self.game.selected)
+        
     # Gtk.Window, Gdk.Event => bool
     def action_key_press(self, win_main, evt):
         key = evt.keyval
-        if key in [Gdk.KEY_Up, Gdk.KEY_KP_Up]:
-            if self.game.selected:
-                self.game.do_move_selected(Direction.Up)
-        elif key in [Gdk.KEY_Down, Gdk.KEY_KP_Down]:
-            if self.game.selected:
-                self.game.do_move_selected(Direction.Down)
-        elif key in [Gdk.KEY_Left, Gdk.KEY_KP_Left]:
-            if self.game.selected:
-                self.game.do_move_selected(Direction.Left)
-        elif key in [Gdk.KEY_Right, Gdk.KEY_KP_Down]:
-            if self.game.selected:
-                self.game.do_move_selected(Direction.Right)
-        elif key in [Gdk.KEY_Return, Gdk.KEY_KP_Enter]:
-            if self.game.selected:
-                self.game.do_move_card(self.game.selected)
-        elif key in [Gdk.KEY_Escape]:
-            self.action_quit()
-        elif key in [Gdk.KEY_n]:
-            self.action_new()
-        elif key in [Gdk.KEY_r]:
-            self.action_shuffle()
-        elif key in [Gdk.KEY_u]:
-            self.action_undo()
-            
+        self.game.dbg('Acquiring lock')
+        with self.game.lock:
+            if key in [Gdk.KEY_Up, Gdk.KEY_KP_Up]:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Up)
+            elif key in [Gdk.KEY_Down, Gdk.KEY_KP_Down]:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Down)
+            elif key in [Gdk.KEY_Left, Gdk.KEY_KP_Left]:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Left)
+            elif key in [Gdk.KEY_Right, Gdk.KEY_KP_Down]:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Right)
+            elif key in [Gdk.KEY_Escape]:
+                self.action_quit()
+            elif key in [Gdk.KEY_n]:
+                self.action_new()
+            elif key in [Gdk.KEY_r]:
+                self.action_shuffle()
+            elif key in [Gdk.KEY_u]:
+                self.action_undo()
+        self.game.dbg('Released lock')
         return False
         
     # Gtk.EventBox, Gdk.Event, Point => bool
     def action_button_press(self, widget, evt, addr):
         button = evt.type
-        if not self.game.is_empty(addr):
-            if button == Gdk.EventType.DOUBLE_BUTTON_PRESS:
-                if self.game.is_movable(addr):
-                    self.game.do_move_card(addr)
-            elif button == Gdk.EventType.BUTTON_PRESS:
-                if self.game.is_movable(addr):
-                    self.game.do_select(addr)
-                
+        with self.game.lock:
+            if not self.game.is_empty(addr):
+                if button == Gdk.EventType.DOUBLE_BUTTON_PRESS:
+                    if self.game.is_movable(addr):
+                        self.game.do_move_card(addr)
+                elif button == Gdk.EventType.BUTTON_PRESS:
+                    if self.game.is_movable(addr):
+                        self.game.do_select(addr)
         return False
 
-    # None => None
-    def report_update_settings(self):
-        self.grd_sidebar.set_visible(self.settings.show_sidebar)
-        self.grd_buttons.set_visible(self.settings.show_buttons)
+    # Gtk.Widget, Cairo.Context, Point => bool
+    def draw_card(self, drw, cr, addr):
+        # float => float
+        def radians(angle):
+            return angle * math.pi / 180
 
-        self.css_border_normal = self.get_border_css(self.settings.color_normal)
-        self.css_border_movable = self.get_border_css(self.settings.color_movable)
-        self.css_border_selected = self.get_border_css(self.settings.color_selected)
-        self.css_border_correct = self.get_border_css(self.settings.color_correct)
-    
+        color = None
+        if self.game.is_selected(addr):
+            color = self.settings.color_selected
+        elif self.game.is_movable(addr) and self.settings.highlight_movable:
+            color = self.settings.color_movable
+        elif self.game.is_correct(addr) and self.settings.highlight_correct:
+            color = self.settings.color_correct
+        else:
+            color = self.settings.color_normal
+
+
+        if not self.game.is_empty(addr):
+            card = self.game.get_card(addr)
+            Gdk.cairo_set_source_pixbuf(cr,
+                                        self.cards[card.suit][card.face],
+                                        self.settings.border,
+                                        self.settings.border)
+            cr.paint()
+
+        x = 0.5 * self.settings.border
+        y = 0.5 * self.settings.border
+        w = self.card_width + self.settings.border
+        h = self.card_height + self.settings.border
+        r = self.settings.radius
+
+        cr.new_sub_path()
+        cr.arc(x + w - r, y + r, r, radians(-90), radians(0))
+        cr.arc(x + w - r, y + h - r, r, radians(0), radians(90))
+        cr.arc(x + r, y + h - r, r, radians(90), radians(180))
+        cr.arc(x + r, y + r, r, radians(180), radians(270))
+        cr.close_path()
+        cr.set_source_rgba(color.red_f, color.green_f, color.blue_f, color.alpha)
+        cr.set_line_width(self.settings.border)
+        cr.stroke()
+        
     # Point, Card => None
     def report_cell_card_changed(self, addr, card):
-        child = self.get_frame(addr).get_child()
-        if child:
-            self.get_frame(addr).remove(child)
-        if card:
-            self.get_frame(addr).add(self.cards[card.suit][card.face])
-            self.get_frame(addr).show_all()
+        self.board[addr.row][addr.col].queue_draw()
 
     # Point, bool => None
-    def report_cell_movable_changed(self, addr, movable):
-        if movable:
-            self.set_border_style(self.get_frame(addr), self.get_css_movable())
-        elif self.game.is_correct(addr):
-            self.set_border_style(self.get_frame(addr), self.get_css_correct())
-        else:
-            self.set_border_style(self.get_frame(addr), self.get_css_normal())
+    def report_cell_flags_changed(self, addr, flags):
+        self.board[addr.row][addr.col].queue_draw()
 
-    # Point, bool => None
-    def report_cell_selected_changed(self, addr, selected):
-        if selected:
-            self.set_border_style(self.get_frame(addr), self.get_css_selected())
-        elif self.game.is_movable(addr):
-            self.set_border_style(self.get_frame(addr), self.get_css_movable())
-        elif self.game.is_correct(addr):
-            self.set_border_style(self.get_frame(addr), self.get_css_correct())
-        else:
-            self.set_border_style(self.get_frame(addr), self.get_css_normal())
-
-    # Point, bool => None
-    def report_cell_correct_changed(self, addr, correct):
-        if correct:
-            self.set_border_style(self.get_frame(addr), self.get_css_correct())
-        elif self.game.is_selected(addr):
-            self.set_border_style(self.get_frame(addr), self.get_css_selected())
-        elif self.game.is_movable(addr):
-            self.set_border_style(self.get_frame(addr), self.get_css_movable())
-        else:
-            self.set_border_style(self.get_frame(addr), self.get_css_normal())
-
-    # int, int, int => None
-    def report_time_changed(self, hrs, mins, secs):
-        components = []
-        if hrs:
-            components.append(str(hrs))
-        components.append('{:02}'.format(mins))
-        components.append('{:02}'.format(secs))
-        self.lbl_time.set_text(':'.join(components))
+    # bool => None
+    def report_selection_changed(self, selected):
+        self.mitm_move.set_sensitive(selected)
             
     # int => None
     def report_undo_changed(self, undos):
@@ -264,15 +272,36 @@ class GameGtk(GameUI):
                 
     # int => None
     def report_movable_changed(self, movable):
-        self.lbl_moves.set_text(str(self.game.moves))
-        self.lbl_movable.set_text('({} available)'.format(movable))
+        self.lbl_status.get_style_context().remove_provider(self.css_stuck)
+        if not movable:
+            self.lbl_status.get_style_context().add_provider(
+                self.css_stuck, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            self.lbl_status.set_text('No moves possible')
+        else:
+            self.lbl_status.set_text('{} moves possible'.format(movable))
+
+    # int => None
+    def report_correct_changed(self, correct):
+        self.lbl_sequence.set_text(str(correct))
             
     # bool => None
     def report_game_over(self, win):
+        if self.timer:
+            GLib.source_remove(self.timer)
+            self.timer = None
+
         if win:
+            self.dlg_result.set_title('Win')
             self.lbl_result.set_text('You win!')
+            self.lbl_status.set_text('You win!')
+            self.lbl_status.get_style_context().add_provider(
+                self.css_win, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         else:
             self.lbl_result.set_text('Game over!')
+            self.lbl_status.set_text('Game over')
+            self.lbl_status.get_style_context().add_provider(
+                self.css_lose, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            
         response = self.dlg_result.run()
         if response in [Gtk.ResponseType.YES]:
             self.game.do_game_new()
@@ -283,51 +312,23 @@ class GameGtk(GameUI):
     # None => None
     def report_game_new(self):
         self.report_undo_changed(0)
-        self.report_moves_changed(0)
         self.report_shuffles_changed(0)
-        self.report_time_changed(0, 0, 0)
+        self.report_moves_changed(0)
+        self.lbl_status.set_text('')
+        self.lbl_status.get_style_context().remove_provider(self.css_win)
+        self.lbl_status.get_style_context().remove_provider(self.css_lose)
+        self.lbl_time.set_text('00:00')
+        self.timer = GLib.timeout_add_seconds(1, self.tick)
 
-    # Point => Gtk.Frame
-    def get_frame(self, addr):
-        return self.board[addr.row][addr.col]
-    
-    # Color => Gtk.CssProvider
-    def get_border_css(self, color):
-        return CSS('frame',
-                   { 'border-style': 'solid',
-                     'border-radius': (self.settings.radius, 'px'),
-                     'border-width': (self.settings.border, 'px'),
-                     'border-color': color}).get_provider()
-    
-    # None => str
-    def get_css_selected(self):
-        return self.css_border_selected 
-
-    # None => str
-    def get_css_movable(self):
-        if self.settings.highlight_movable:
-            return self.css_border_movable
+    # None => None
+    def tick(self):
+        ticks = self.game.ticks
+        secs = ticks % 60
+        mins = int(ticks / 60) % 60
+        hrs = int(ticks / 3600)
+        if hrs:
+            self.lbl_time.set_text('{}:{:02}:{:02}'.format(hrs, mins, secs))
         else:
-            return self.css_border_normal
+            self.lbl_time.set_text('{:02}:{:02}'.format(mins, secs))
 
-    # None => str
-    def get_css_correct(self):
-        if self.settings.highlight_correct:
-            return self.css_border_correct
-        else:
-            return self.css_border_normal
-        
-    # None => str
-    def get_css_normal(self):
-        return self.css_border_normal
-        
-    # Gtk.Widget, Gtk.CssProvider => None
-    def set_border_style(self, widget, css):
-        style = widget.get_style_context()
-
-        style.remove_provider(self.css_border_normal)
-        style.remove_provider(self.css_border_selected)
-        style.remove_provider(self.css_border_movable)
-        style.remove_provider(self.css_border_correct)
-
-        style.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        return True
