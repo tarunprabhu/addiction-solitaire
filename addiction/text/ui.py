@@ -24,11 +24,6 @@ from ..game_ui import GameUI
 from ..settings import Settings
 from ..types import Suit, Direction, CellFlags
 
-@unique
-class Blocked(Enum):
-    Clear = auto()
-    New = auto()
-    Quit = auto()
 
 class Cell:
     # Game, int, int
@@ -107,10 +102,10 @@ class GameText(GameUI):
 
         self.palette = [
             ('default', '', ''),
-            ('title', 'bold', ''),
+            ('bold', 'bold', ''),
             ('win', 'white,bold', 'dark green'),
             ('lose', 'white,bold', 'dark red'),
-            ('dialog', 'bold', ''),
+            ('stuck', 'brown,bold', ''),
             ('card_empty', '', ''),
             ('card_red', 'light red,bold', ''),
             ('card_black', 'bold', ''),
@@ -131,23 +126,35 @@ class GameText(GameUI):
         cols = []
         for i in range(0, 4):
             cols.append(urwid.Columns([cell.contents for cell in self.cells[i]],
-                                      1, min_width = 2))
+                                      dividechars = 1,
+                                      min_width = 2))
         rows = urwid.Pile(cols)
         self.board = urwid.Filler(rows)
 
-        header = urwid.Text(('title', 'Addiction Solitaire'), align = 'center')
+        header = urwid.Text(('bold', 'Addiction Solitaire'), align = 'center')
 
-        lbl_time = urwid.Text(('bold', 'Time'))
-        lbl_shuffles = urwid.Text(('bold', 'Shuffles'))
-        lbl_moves = urwid.Text(('bold', 'Moves'))
-        lbl_movable = urwid.Text(('bold', ''))
+        lbl_time = urwid.Text(('bold', ' Time'))
+        lbl_shuffles = urwid.Text(('bold', ' Shuffles'))
+        lbl_moves = urwid.Text(('bold', 'Moves'), align = 'right')
+        lbl_correct = urwid.Text(('bold', 'Sequence'), align = 'right')
 
         self.lbl_time = urwid.Text('')
         self.lbl_shuffles = urwid.Text('')
         self.lbl_moves = urwid.Text('')
-        self.lbl_movable = urwid.Text('')
+        self.lbl_correct = urwid.Text('')
 
-        key_arrow = urwid.Text(('bold', 'Arrow\nkeys'))
+        self.lbl_message = urwid.Text('', align = 'center')
+
+        status = urwid.Columns(
+            [(9, urwid.Pile([lbl_time, lbl_shuffles])),
+             (10, urwid.Pile([self.lbl_time, self.lbl_shuffles])),
+             self.lbl_message,
+             (14, urwid.Pile([lbl_moves, lbl_correct])),
+             (5, urwid.Pile([self.lbl_moves, self.lbl_correct]))
+            ],
+            dividechars = 2)
+        
+        key_arrow = urwid.Text(('bold', '<Arrow keys>'))
         key_enter = urwid.Text(('bold', '<Enter>'))
         
         key_arrow_do = urwid.Text('Change\nselection')
@@ -162,48 +169,55 @@ class GameText(GameUI):
         key_undo_do = urwid.Text('Undo')
         key_new_do = urwid.Text('New game')
         key_quit_do = urwid.Text('Quit game')
+        
+        helpbox = urwid.LineBox(urwid.Columns(
+            [\
+             (12, urwid.Pile([key_arrow])),
+             urwid.Pile([key_arrow_do]),
+             (7, urwid.Pile([key_enter])),
+             urwid.Pile([key_enter_do]),
+             (1, urwid.Pile([key_shuffle, key_undo])),
+             urwid.Pile([key_shuffle_do, key_undo_do]),
+             (5, urwid.Pile([key_new, key_quit])),
+             urwid.Pile([key_new_do, key_quit_do])\
+            ],
+            dividechars = 2))
+        
+        footer = urwid.Pile(
+            [status,
+             helpbox])
 
-        self.lbl_message = urwid.Text('', align = 'center')
-        
-        # footer = urwid.Pile(
-        #     self.lbl_message,
-        #     urwid.Columns(
-        #         urwid.Pile([(1, lbl_time),
-        #                     (1, lbl_shuffles),
-        #                     (1, lbl_moves),
-        #                     (1, lbl_movable)]),
-        #         urwid.Pile([(1, self.lbl_time),
-        #                     (1, self.lbl_shuffles),
-        #                     (1, self.lbl_moves),
-        #                     (1, self.lbl_movable)])))
-        
-        # footer = urwid.BoxAdapter(urwid.Frame(self.lbl_time, self.lbl_message),
-        #                           'bottom')
-        # footer = urwid.BoxAdapter(urwid.Frame(
-        #     urwid.Filler(
-        #         urwid.Pile(
-        #     self.lbl_message), 'bottom')
-        
-        self.frame = urwid.Frame(self.board, header, self.lbl_message)
-
-        self.blocked = Blocked.Clear
+        self.frame = urwid.Frame(self.board, header, footer)
+        self.loop = None
+        self.timer = None
         
     # * => *
     def main(self):
-        # fill = urwid.BoxAdapter(self.frame)
-        loop = urwid.MainLoop(self.frame,
-                              self.palette,
-                              unhandled_input = self.action_key_press,
-                              handle_mouse = False)
-        loop.screen.set_terminal_properties(colors = 16)
-        loop.set_alarm_in(5, self.tick, 0)
-        loop.run()
+        self.loop = urwid.MainLoop(self.frame,
+                                   self.palette,
+                                   unhandled_input = self.action_key_press,
+                                   handle_mouse = False)
+        self.loop.screen.set_terminal_properties(colors = 16)
+        self.loop.run()
 
-    def tick(self, loop, secs):
-        pass
+    # urwid.MainLoop, * => None
+    def tick(self, loop, data = None):
+        ticks = self.game.ticks
+        secs = ticks % 60
+        mins = int((ticks / 60)) % 60
+        hrs = int(ticks / 3600)
+        if hrs:
+            self.lbl_time.set_text('{}:{:02}:{:02}'.format(hrs, mins, secs))
+        else:
+            self.lbl_time.set_text('{:02}:{:02}'.format(mins, secs))
+
+        self.timer = self.loop.set_alarm_in(1, self.tick)
         
     # * => *
     def quit(self):
+        if self.timer:
+            self.loop.remove_alarm(timer)
+            timer = None
         raise urwid.ExitMainLoop()
     
     # * => None
@@ -225,49 +239,29 @@ class GameText(GameUI):
     # str => None
     def action_key_press(self, key):
         with self.game.lock:
-            if self.blocked == Blocked.Clear:
-                if key in ['up']:
-                    if self.game.selected:
-                        self.game.do_move_selected(Direction.Up)
-                elif key in ['down']:
-                    if self.game.selected:
-                        self.game.do_move_selected(Direction.Down)
-                elif key in ['left']:
-                    if self.game.selected:
-                        self.game.do_move_selected(Direction.Left)
-                elif key in ['right']:
-                    if self.game.selected:
-                        self.game.do_move_selected(Direction.Right)
-                elif key in ['enter']:
-                    if self.game.selected:
-                        self.game.do_move_card(self.game.selected)
-                elif key in ['n']:
-                    if self.game.is_started():
-                        self.blocked = Blocked.New
-                        self.lbl_message.set_text(('bold',
-                                                   'Really quit game [y/n]: '))
-                    else:
-                        self.action_new()
-                elif key in ['esc']:
-                    if self.game.is_started():
-                        self.blocked = Blocked.Quit
-                        self.lbl_message.set_text(('bold',
-                                                   'Really quit game [y/n]: '))
-                    else:
-                        self.action_quit()
-                elif key in ['u']:
-                    self.action_undo()
-                elif key in ['r']:
-                    self.action_shuffle()
-            else:
-                if key in ['y']:
-                    if self.blocked == Blocked.New:
-                        self.action_new()
-                    elif self.blocked == Blocked.Quit:
-                        self.action_quit()
-                elif key in ['n']:
-                    self.blocked = Blocked.Clear
-                    self.lbl_message.set_text('')
+            if key in ['up']:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Up)
+            elif key in ['down']:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Down)
+            elif key in ['left']:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Left)
+            elif key in ['right']:
+                if self.game.selected:
+                    self.game.do_move_selected(Direction.Right)
+            elif key in ['enter']:
+                if self.game.selected:
+                    self.game.do_move_card(self.game.selected)
+            elif key in ['n']:
+                self.action_new()
+            elif key in ['esc']:
+                self.action_quit()
+            elif key in ['u']:
+                self.action_undo()
+            elif key in ['r']:
+                self.action_shuffle()
         return True
 
     # * => None
@@ -300,22 +294,33 @@ class GameText(GameUI):
             
     # int => None
     def report_shuffles_changed(self, shuffles):
-        self.lbl_shuffles.set_text(str(shuffles))
+        if self.settings.is_unlimited_shuffles():
+            self.lbl_shuffles.set_text('Unlimited')
+        else:
+            self.lbl_shuffles.set_text('{} of {}'.format(shuffles,
+                                                         self.settings.shuffles))
 
     # int => None
     def report_moves_changed(self, moves):
-        self.lbl_moves.set_text(str(moves))
+        self.lbl_moves.set_text('{} '.format(moves))
         
     # int => None
     def report_movable_changed(self, movable):
-        self.lbl_movable.set_text('({} available)'.format(movable))
+        if movable:
+            self.lbl_message.set_text('{} moves possible'.format(movable))
+        else:
+            self.lbl_message.set_text(('stuck', 'No moves possible'))
 
     # int => None
     def report_correct_changed(self, correct):
-        pass
+        self.lbl_correct.set_text('{} '.format(correct))
         
     # bool => None
     def report_game_over(self, win):
+        if self.timer:
+            self.loop.remove_alarm(self.timer)
+            self.timer = None
+            
         if win:
             self.lbl_message.set_text(('win', ' You win! '))
         else:
@@ -323,5 +328,6 @@ class GameText(GameUI):
 
     # None => None
     def report_game_new(self):
-        self.lbl_message.set_text('')
-    
+        self.report_moves_changed(0)
+        self.report_shuffles_changed(0)
+        self.tick(self.loop)
