@@ -33,10 +33,10 @@ class SettingsEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Color):
             return { '_type': 'Color',
-                     'red': obj.red,
-                     'green': obj.green,
-                     'blue': obj.blue,
-                     'alpha': obj.alpha}
+                     'red': obj.red(),
+                     'green': obj.green(),
+                     'blue': obj.blue(),
+                     'alpha': obj.alpha()}
         return super().default(obj)
 
 
@@ -59,20 +59,27 @@ class Settings:
                            'addiction-solitaire')
     filename = os.path.join(dirname, 'settings.json')
 
-    # Constants
-    Unlimited = -1
+    # Private constants
+    _Unlimited = -1
 
     # Default settings
     def_color_selected = Color(164, 0, 0)
     def_color_movable = Color(252, 175, 62)
     def_color_correct = Color(115, 210, 22)
     def_color_normal = Color(210, 210, 210)
-    def_border = 4
-    def_radius = 4
     def_shuffles = 3
     def_highlight_movable = True
     def_highlight_correct = True
 
+    # Constants.
+    # These will not be saved to the settings file 
+    border = 4
+    radius = 4
+    card_width = 70
+    card_height = 98
+    card_space = 2
+    board_border = 4
+    
     # Game,
     def __init__(self, game, **overrides):
         self.game = game
@@ -109,7 +116,7 @@ class Settings:
 
     # None => bool
     def is_unlimited_shuffles(self):
-        return self.shuffles == self.Unlimited
+        return self.shuffles == self._Unlimited
             
     # None => Gdk.RGBA
     @property
@@ -130,16 +137,6 @@ class Settings:
     @property
     def color_normal(self):
         return self.values['color_normal']
-
-    # None => int
-    @property
-    def border(self):
-        return self.values['border']
-
-    # None => int
-    @property
-    def radius(self):
-        return self.values['radius']
 
     # None => int
     @property
@@ -175,16 +172,6 @@ class Settings:
     @color_normal.setter
     def color_normal(self, val):
         self.values['color_normal'] = val
-
-    # int => None
-    @border.setter
-    def border(self, val):
-        self.values['border'] = val
-
-    # int => None
-    @radius.setter
-    def radius(self, val):
-        self.values['radius'] = val
 
     # int => None
     @shuffles.setter

@@ -306,13 +306,13 @@ class Game:
 
     # None => None
     def shuffles_decr(self):
-        if self.settings.shuffles != Settings.Unlimited:
+        if not self.settings.is_unlimited_shuffles():
             self.shuffles = self.shuffles - 1
         self.ui.report_shuffles_changed(self.shuffles)
 
     # None => None
     def shuffles_incr(self):
-        if self.settings.shuffles != Settings.Unlimited:
+        if not self.settings.is_unlimited_shuffles():
             self.shuffles = self.shuffles + 1
         self.ui.report_shuffles_changed(self.shuffles)
 

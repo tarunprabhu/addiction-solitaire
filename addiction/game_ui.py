@@ -58,7 +58,7 @@ class GameUI(AbstractBase):
     @abstractmethod
     def action_quit(self, *args):
         pass
-    
+
     # Point, Card => None
     @abstractmethod
     def report_cell_card_changed(self, addr, card):
@@ -117,6 +117,11 @@ class GameUI(AbstractBase):
     def action_undo(self, *args):
         self.game.do_undo()
 
+    # * => None
+    def action_move(self, *args):
+        if self.game.selected:
+            self.game.do_move_card(self.game.selected)
+        
     # None => Game
     @property
     def game(self):

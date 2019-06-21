@@ -26,10 +26,10 @@ from ..types import Color
 
 # Color => Gdk.RGBA
 def as_rgba(color):
-    return Gdk.RGBA(color.red / 255,
-                    color.green / 255,
-                    color.blue / 255,
-                    color.alpha)
+    return Gdk.RGBA(color.red(float),
+                    color.green(float),
+                    color.blue(float),
+                    color.alpha(float))
     
 # Gdk.RGBA => Color
 def as_color(rgba):

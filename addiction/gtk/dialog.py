@@ -66,7 +66,7 @@ class SettingsGtk(SettingsUI):
                                         binding_flags \
                                         | GObject.BindingFlags.INVERT_BOOLEAN)
 
-        self.chk_shuffles.set_active(self.settings.shuffles == Settings.Unlimited)
+        self.chk_shuffles.set_active(self.settings.is_unlimited_shuffles())
         self.spn_shuffles.set_value(self.settings.shuffles)
         self.cbtn_selected.set_rgba(as_rgba(self.settings.color_selected))
         self.cbtn_movable.set_rgba(as_rgba(self.settings.color_movable))
@@ -110,8 +110,11 @@ class SettingsGtk(SettingsUI):
 
     # Gtk.ToggleButton => None
     def cb_chk_shuffles_toggled(self, chk_shuffles):
-        self.settings.shuffles = Settings.Unlimited
-        
+        if chk_shuffles.get_active():
+            self.settings.shuffles = Settings._Unlimited
+        else:
+            self.settings.shuffles = spn_shuffles.get_value()
+            
     # Gtk.SpinButton => None
     def cb_spn_shuffles_value_changed(self, spn_shuffles):
         self.settings.shuffles = spn_shuffles.get_value()

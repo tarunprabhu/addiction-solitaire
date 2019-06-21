@@ -61,6 +61,8 @@ class GameGtk(GameUI):
         self.lbl_sequence = self.builder.get_object('lbl_sequence')
         self.lbl_status = self.builder.get_object('lbl_status')
         self.lbl_result = self.builder.get_object('lbl_result')
+        self.img_result_1 = self.builder.get_object('img_result_1')
+        self.img_result_2 = self.builder.get_object('img_result_2')
 
         self.mitm_move = self.builder.get_object('mitm_move')
         self.mitm_undo = self.builder.get_object('mitm_undo')
@@ -235,7 +237,10 @@ class GameGtk(GameUI):
         cr.arc(x + r, y + h - r, r, radians(90), radians(180))
         cr.arc(x + r, y + r, r, radians(180), radians(270))
         cr.close_path()
-        cr.set_source_rgba(color.red_f, color.green_f, color.blue_f, color.alpha)
+        cr.set_source_rgba(color.red(float),
+                           color.green(float),
+                           color.blue(float),
+                           color.alpha(float))
         cr.set_line_width(self.settings.border)
         cr.stroke()
         
@@ -290,16 +295,29 @@ class GameGtk(GameUI):
             GLib.source_remove(self.timer)
             self.timer = None
 
+        style_result = self.lbl_result.get_style_context()
+        style_status = self.lbl_status.get_style_context()
         if win:
-            self.dlg_result.set_title('Win')
-            self.lbl_result.set_text('You win!')
-            self.lbl_status.set_text('You win!')
-            self.lbl_status.get_style_context().add_provider(
+            self.img_result_1.set_from_icon_name('emblem-generic',
+                                                 Gtk.IconSize.LARGE_TOOLBAR)
+            self.img_result_2.set_from_icon_name('emblem-generic',
+                                                 Gtk.IconSize.LARGE_TOOLBAR)
+            self.lbl_result.set_text('You won')
+            self.lbl_status.set_text('You won')
+            style_result.add_provider(
+                self.css_win, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            style_status.add_provider(
                 self.css_win, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         else:
-            self.lbl_result.set_text('Game over!')
-            self.lbl_status.set_text('Game over')
-            self.lbl_status.get_style_context().add_provider(
+            self.img_result_1.set_from_icon_name('dialog-error',
+                                                 Gtk.IconSize.LARGE_TOOLBAR)
+            self.img_result_2.set_from_icon_name('dialog-error',
+                                                 Gtk.IconSize.LARGE_TOOLBAR)
+            self.lbl_result.set_text('You lost')
+            self.lbl_status.set_text('You lost')
+            style_result.add_provider(
+                self.css_lose, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            style_status.add_provider(
                 self.css_lose, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
             
         response = self.dlg_result.run()
@@ -317,6 +335,8 @@ class GameGtk(GameUI):
         self.lbl_status.set_text('')
         self.lbl_status.get_style_context().remove_provider(self.css_win)
         self.lbl_status.get_style_context().remove_provider(self.css_lose)
+        self.lbl_result.get_style_context().remove_provider(self.css_win)
+        self.lbl_result.get_style_context().remove_provider(self.css_lose)
         self.lbl_time.set_text('00:00')
         self.timer = GLib.timeout_add_seconds(1, self.tick)
 

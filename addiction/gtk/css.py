@@ -31,10 +31,10 @@ class CSS:
             if isinstance(val, Color):
                 css.append('{}: rgba({},{},{},{})'.format(
                     key,
-                    val.red,
-                    val.green,
-                    val.blue,
-                    val.alpha))
+                    val.red(),
+                    val.green(),
+                    val.blue(),
+                    val.alpha()))
             elif isinstance(val, tuple):
                 css.append('{}: {}{}'.format(key, val[0], val[1]))
             elif isinstance(val, int) \

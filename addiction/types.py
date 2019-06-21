@@ -243,30 +243,51 @@ class Point:
 class Color:
     # int, int, int, float
     def __init__(self, red, green, blue, alpha = 1.0):
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
+        self._red = red
+        self._green = green
+        self._blue = blue
+        self._alpha = alpha
 
-    # None => float
-    @property
-    def red_f(self):
-        return self.red / 255
+    # type => type()
+    def red(self, typ = int):
+        if typ == int:
+            return self._red
+        elif typ == float:
+            return self._red / 255
+        else:
+            raise RuntimeError('Cannot convert color component to type:', typ)
 
-    # None => float
-    @property
-    def green_f(self):
-        return self.green / 255
+    # type => type()
+    def green(self, typ = int):
+        if typ == int:
+            return self._green
+        elif typ == float:
+            return self._green / 255
+        else:
+            raise RuntimeError('Cannot convert color temperature to type:', typ)
 
-    # None => float
-    @property
-    def blue_f(self):
-        return self.blue / 255
+    # type => type()
+    def blue(self, typ = int):
+        if typ == int:
+            return self._blue
+        elif typ == float:
+            return self._blue / 255
+        else:
+            raise RuntimeError('Cannot convert color temperature to type:', typ)
+
+    # type => type()
+    def alpha(self, typ = float):
+        if typ == int:
+            return int(self._alpha * 255)
+        elif typ == float:
+            return self._alpha
+        else:
+            raise RuntimeError('Cannot convert color temperature to type:', typ)
     
     # None => str
     def __str__(self):
-        return 'Color({}, {}, {}, {})'.format(self.red, self.green, self.blue,
-                                              self.alpha)
+        return 'Color({}, {}, {}, {})'.format(self.red(), self.green(), self.blue(),
+                                              self.alpha())
 
     # None => str
     def __repr__(self):
