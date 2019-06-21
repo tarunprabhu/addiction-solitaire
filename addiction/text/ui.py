@@ -216,7 +216,7 @@ class GameText(GameUI):
     # * => *
     def quit(self):
         if self.timer:
-            self.loop.remove_alarm(timer)
+            self.loop.remove_alarm(self.timer)
             timer = None
         raise urwid.ExitMainLoop()
     
