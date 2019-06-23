@@ -49,6 +49,8 @@ class GameGtk(GameUI):
         self.builder = Gtk.Builder.new()
         self.builder.add_objects_from_file(GameGtk.filename,
                                            ['win_main',
+                                            'img_move',
+                                            'img_shuffle',
                                             'dlg_about',
                                             'dlg_quit',
                                             'dlg_result'])
