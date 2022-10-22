@@ -28,8 +28,8 @@ from enum import Enum, unique, auto
 from addiction.game import Game
 from addiction.gtk.ui import GameGtk
 from addiction.gtk.dialog import SettingsGtk
-from addiction.qt.ui import GameQt
-from addiction.qt.dialog import SettingsQt
+# from addiction.qt.ui import GameQt
+# from addiction.qt.dialog import SettingsQt
 from addiction.text.ui import GameText
 
 
@@ -48,7 +48,7 @@ def signal_trap_sigint(signal, frame, game):
     print(file = sys.stderr)
     faulthandler.dump_traceback(file = sys.stderr)
     game.do_quit()
-    
+
 # None => int
 def main():
     parser = argparse.ArgumentParser('Addiction solitaire game')
@@ -65,12 +65,12 @@ def main():
     qt.set_defaults(mode = Mode.Qt)
 
     text = ui.add_parser('text', help = 'text help')
-    text.add_argument('-s', '--shuffles', default = 3, 
+    text.add_argument('-s', '--shuffles', default = 3,
                       dest = 'shuffles', action='store_const', const = -1,
                       help = ('Maximum number of shuffles. '
                               'If no number is provided, unlimited shuffles'))
     text.add_argument('-m', '--no-movable', default = True,
-                      dest = 'highlight_movable', action='store_false', 
+                      dest = 'highlight_movable', action='store_false',
                       help = ('Do not highlight movable cards'))
     text.add_argument('-c', '--no-correct', default = True,
                       dest = 'highlight_correct', action='store_false',
@@ -96,7 +96,7 @@ def main():
                       lambda sig, frm: signal_trap_sigint(sig, frm, game))
 
     game.main()
-    
+
     return 0
 
 if __name__ == '__main__':
